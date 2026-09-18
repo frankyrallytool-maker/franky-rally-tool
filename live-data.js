@@ -1,6 +1,6 @@
 (function () {
   const API_URL = "https://script.google.com/macros/s/AKfycbxuxysWcVsk_Y6eARCGne_iH-hGUOSkAa2bkTuDLGXU9jgJ1sJPgz58Q41Cf0UcVo8svA/exec";
-  const APP_BUILD = "1.10.10";
+  const APP_BUILD = "1.10.11";
   const CACHE_KEY = "franky_sheet_cache_v2";
   const CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
@@ -298,10 +298,13 @@
 
   function isApcSheet(values) {
     if (!Array.isArray(values) || !values.length || !Array.isArray(values[0])) return false;
-    const h = values[0].map(function(v){ return String(v || "").toLowerCase(); });
-    return h[0].indexOf("giocatore") !== -1 &&
-           h[1] && h[1].indexOf("macchina 1") !== -1 &&
-           h[2] && h[2].indexOf("macchina 2") !== -1;
+    const h = values[0].map(function(v){ return String(v || "").toLowerCase().trim(); });
+
+    const playerHeader = h[0] === "player" || h[0].indexOf("giocatore") !== -1;
+    const apc1Header = h[1] && (h[1].indexOf("apc 1") !== -1 || h[1].indexOf("macchina 1") !== -1);
+    const apc2Header = h[2] && (h[2].indexOf("apc 2") !== -1 || h[2].indexOf("macchina 2") !== -1);
+
+    return !!(playerHeader && apc1Header && apc2Header);
   }
 
   function parseApcSheet(values) {
