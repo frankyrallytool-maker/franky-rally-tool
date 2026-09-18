@@ -14,6 +14,8 @@
     { label: "> 1G", estimate: 1100 }
   ];
 
+  const CACHE_KEY = "franky_sheet_cache_v1";
+  const CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
   let syncState = "loading";
   let lastSync = null;
 
@@ -69,11 +71,13 @@
     strip.className = "sync-strip " + (syncState === "ok" ? "ok" : syncState === "error" ? "error" : "");
     if (syncState === "loading") {
       label.textContent = txt("Chargement du Google Sheet…", "Loading Google Sheet…");
+    } else if (syncState === "cached") {
+      label.textContent = txt("Données instantanées affichées · mise à jour en cours…", "Instant cached data shown · refreshing…");
     } else if (syncState === "error") {
-      label.textContent = txt("Impossible de charger les données en direct.", "Unable to load live data.");
+      label.textContent = txt("Données enregistrées utilisées · mise à jour impossible.", "Using saved data · live refresh unavailable.");
     } else {
       const time = lastSync ? new Date(lastSync).toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"}) : "";
-      label.textContent = txt("Données Google Sheet chargées", "Google Sheet data loaded") + (time ? " · " + time : "");
+      label.textContent = txt("Données Google Sheet à jour", "Google Sheet data up to date") + (time ? " · " + time : "");
     }
   }
 
@@ -271,9 +275,52 @@
     updateSyncStrip();
   };
 
-  function loadLiveData() {
-    syncState="loading";
+  function selectedNames() {
+    const map = {};
+    players.forEach(function(p) { if (p.selected) map[p.name] = true; });
+    return map;
+  }
+
+  function applyValues(values, updatedAt, preserveCurrentSelection) {
+    const keep = preserveCurrentSelection ? selectedNames() : {};
+    const parsed = parseSheet(values);
+    parsed.forEach(function(p) { p.selected = !!keep[p.name]; });
+    players.splice(0, players.length);
+    parsed.forEach(function(p) { players.push(p); });
+    lastSync = updatedAt || new Date().toISOString();
+    renderAll();
+  }
+
+  function loadCachedData() {
+    try {
+      const raw = localStorage.getItem(CACHE_KEY);
+      if (!raw) return false;
+      const cached = JSON.parse(raw);
+      if (!cached || !Array.isArray(cached.values) || !cached.savedAt) return false;
+      if ((Date.now() - cached.savedAt) > CACHE_MAX_AGE) return false;
+      applyValues(cached.values, cached.updatedAt || cached.savedAt, false);
+      syncState = "cached";
+      updateSyncStrip();
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function saveCache(payload) {
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify({
+        values: payload.values,
+        updatedAt: payload.updatedAt || new Date().toISOString(),
+        savedAt: Date.now()
+      }));
+    } catch (_) {}
+  }
+
+  function loadLiveData(hasCache) {
+    syncState = hasCache ? "cached" : "loading";
     updateSyncStrip();
+
     const callbackName="__frankySheetDataLoaded";
     const old=document.getElementById("frankyDataScript");
     if (old) old.remove();
@@ -281,14 +328,12 @@
     window[callbackName]=function(payload) {
       try {
         if (!payload || payload.ok !== true || !Array.isArray(payload.values)) throw new Error("Bad payload");
-        const parsed=parseSheet(payload.values);
-        players.splice(0,players.length);
-        parsed.forEach(p => players.push(p));
-        lastSync=payload.updatedAt || new Date().toISOString();
+        saveCache(payload);
+        applyValues(payload.values, payload.updatedAt, true);
         syncState="ok";
-        renderAll();
+        updateSyncStrip();
       } catch (err) {
-        syncState="error";
+        syncState=hasCache ? "error" : "error";
         updateSyncStrip();
       } finally {
         try { delete window[callbackName]; } catch (_) {}
@@ -297,8 +342,13 @@
 
     const script=document.createElement("script");
     script.id="frankyDataScript";
-    script.src=API_URL + "?action=data&callback=" + encodeURIComponent(callbackName) + "&ts=" + Date.now();
-    script.onerror=function(){ syncState="error"; updateSyncStrip(); };
+    // 30-second URL bucket: repeated openings can reuse a recent response instead of forcing a brand-new request.
+    const bucket=Math.floor(Date.now()/30000);
+    script.src=API_URL + "?action=data&callback=" + encodeURIComponent(callbackName) + "&v=" + bucket;
+    script.onerror=function(){
+      syncState="error";
+      updateSyncStrip();
+    };
     document.head.appendChild(script);
   }
 
@@ -306,5 +356,7 @@
   addSyncStrip();
   players.splice(0,players.length);
   renderAll();
-  loadLiveData();
+
+  const hasCache = loadCachedData();
+  loadLiveData(hasCache);
 })();
