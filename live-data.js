@@ -1,6 +1,6 @@
 (function () {
   const API_URL = "https://script.google.com/macros/s/AKfycbxuxysWcVsk_Y6eARCGne_iH-hGUOSkAa2bkTuDLGXU9jgJ1sJPgz58Q41Cf0UcVo8svA/exec";
-  const APP_BUILD = "1.10.5";
+  const APP_BUILD = "1.10.6";
   const CACHE_KEY = "franky_sheet_cache_v2";
   const CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
@@ -21,7 +21,6 @@
   let lastSync = null;
   let sourceSchema = "unknown";
   let playerFilterQuery = "";
-  let playerFilterMinHeight = 0;
 
   function txt(fr, en) { return lang === "fr" ? fr : en; }
 
@@ -57,6 +56,8 @@
       ".player-filter button{display:none;position:absolute;right:5px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:0;border-radius:8px;background:#14273b;color:#b8cce0;font-size:20px;line-height:1;padding:0}",
       ".player-filter button.visible{display:grid;place-items:center}",
       ".player-filter button:hover{background:#1a3855;color:#fff}",
+      ".players.filter-active{position:fixed;z-index:9999;display:grid;gap:5px;max-height:260px;overflow-y:auto;padding:6px;border:1px solid #2b5277;border-radius:12px;background:#08131f;box-shadow:0 14px 36px rgba(0,0,0,.55);-webkit-overflow-scrolling:touch}",
+      ".filter-spacer{display:block;width:100%;pointer-events:none}",
       ".result-card{grid-template-columns:auto auto minmax(0,1fr) auto;align-items:center}",
       ".result-main{min-width:0}",
       ".result-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}",
@@ -153,65 +154,96 @@
     clear.classList.toggle("visible", !!playerFilterQuery);
   }
 
+  function positionFilterResults() {
+    const input = document.getElementById("playerFilterInput");
+    const box = document.getElementById("playersList");
+    if (!input || !box || !playerFilterQuery) return;
+
+    const r = input.getBoundingClientRect();
+    const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    const top = Math.round(r.bottom + 6);
+    const available = Math.max(100, Math.min(260, viewportHeight - top - 12));
+
+    box.style.left = Math.round(r.left) + "px";
+    box.style.top = top + "px";
+    box.style.width = Math.round(r.width) + "px";
+    box.style.maxHeight = available + "px";
+  }
+
+  function enterFilterMode() {
+    const box = document.getElementById("playersList");
+    if (!box || box.classList.contains("filter-active")) return;
+
+    const spacer = document.createElement("div");
+    spacer.id = "playerFilterSpacer";
+    spacer.className = "filter-spacer";
+    spacer.style.height = Math.max(0, box.offsetHeight) + "px";
+    box.parentNode.insertBefore(spacer, box.nextSibling);
+
+    box.classList.add("filter-active");
+    positionFilterResults();
+  }
+
+  function leaveFilterMode() {
+    const box = document.getElementById("playersList");
+    const spacer = document.getElementById("playerFilterSpacer");
+
+    if (box) {
+      box.classList.remove("filter-active");
+      box.style.left = "";
+      box.style.top = "";
+      box.style.width = "";
+      box.style.maxHeight = "";
+    }
+    if (spacer && spacer.parentNode) spacer.parentNode.removeChild(spacer);
+  }
+
   function setupPlayerFilter() {
     const input = document.getElementById("playerFilterInput");
     const clear = document.getElementById("playerFilterClear");
-    const box = document.getElementById("playersList");
-    if (!input || !clear || !box || input.dataset.ready === "1") return;
+    if (!input || !clear || input.dataset.ready === "1") return;
 
     input.dataset.ready = "1";
     input.value = playerFilterQuery;
     updatePlayerFilterUI();
 
-    input.addEventListener("focus", function() {
-      // Keep the page height stable while filtering.
-      // On iPhone, shrinking a long list while the keyboard is open makes Safari
-      // clamp the scroll position, which causes the visible "jump".
-      playerFilterMinHeight = Math.max(playerFilterMinHeight, box.offsetHeight, box.scrollHeight);
-      if (playerFilterMinHeight > 0) box.style.minHeight = playerFilterMinHeight + "px";
-    });
-
     input.addEventListener("input", function() {
+      const wasEmpty = !playerFilterQuery;
       playerFilterQuery = input.value || "";
 
       if (playerFilterQuery) {
-        playerFilterMinHeight = Math.max(playerFilterMinHeight, box.offsetHeight, box.scrollHeight);
-        if (playerFilterMinHeight > 0) box.style.minHeight = playerFilterMinHeight + "px";
+        if (wasEmpty) enterFilterMode();
+        renderPlayers();
+        requestAnimationFrame(positionFilterResults);
       } else {
-        box.style.minHeight = "";
-        playerFilterMinHeight = 0;
+        leaveFilterMode();
+        renderPlayers();
       }
 
       updatePlayerFilterUI();
-      renderPlayers();
-
-      // If the first match would sit behind the iPhone keyboard,
-      // move only enough to reveal it. Otherwise do not move the page.
-      if (playerFilterQuery) {
-        requestAnimationFrame(function() {
-          const first = box.querySelector(".player-row");
-          if (!first) return;
-
-          const rect = first.getBoundingClientRect();
-          const visibleHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-          const safeBottom = visibleHeight - 16;
-
-          if (rect.bottom > safeBottom || rect.top < 0) {
-            first.scrollIntoView({block:"nearest", inline:"nearest"});
-          }
-        });
-      }
     });
 
     clear.addEventListener("click", function() {
       playerFilterQuery = "";
       input.value = "";
-      box.style.minHeight = "";
-      playerFilterMinHeight = 0;
+      leaveFilterMode();
       updatePlayerFilterUI();
       renderPlayers();
-      input.blur();
+      input.focus();
     });
+
+    window.addEventListener("resize", function() {
+      if (playerFilterQuery) positionFilterResults();
+    });
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", function() {
+        if (playerFilterQuery) positionFilterResults();
+      });
+      window.visualViewport.addEventListener("scroll", function() {
+        if (playerFilterQuery) positionFilterResults();
+      });
+    }
   }
 
   function parseSimplePower(raw) {
