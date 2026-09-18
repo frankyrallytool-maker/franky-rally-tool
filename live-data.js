@@ -1,6 +1,6 @@
 (function () {
   const API_URL = "https://script.google.com/macros/s/AKfycbxuxysWcVsk_Y6eARCGne_iH-hGUOSkAa2bkTuDLGXU9jgJ1sJPgz58Q41Cf0UcVo8svA/exec";
-  const APP_BUILD = "1.10.6";
+  const APP_BUILD = "1.10.7";
   const CACHE_KEY = "franky_sheet_cache_v2";
   const CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
@@ -56,8 +56,9 @@
       ".player-filter button{display:none;position:absolute;right:5px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:0;border-radius:8px;background:#14273b;color:#b8cce0;font-size:20px;line-height:1;padding:0}",
       ".player-filter button.visible{display:grid;place-items:center}",
       ".player-filter button:hover{background:#1a3855;color:#fff}",
-      ".players.filter-active{position:fixed;z-index:9999;display:grid;gap:5px;max-height:260px;overflow-y:auto;padding:6px;border:1px solid #2b5277;border-radius:12px;background:#08131f;box-shadow:0 14px 36px rgba(0,0,0,.55);-webkit-overflow-scrolling:touch}",
-      ".filter-spacer{display:block;width:100%;pointer-events:none}",
+      ".player-filter-results{display:none;position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:9999;max-height:190px;overflow-y:auto;padding:6px;border:1px solid #2b5277;border-radius:12px;background:#08131f;box-shadow:0 14px 36px rgba(0,0,0,.55);-webkit-overflow-scrolling:touch}",
+      ".player-filter-results.visible{display:grid;gap:5px}",
+      ".player-filter-results .player-row{margin:0}",
       ".result-card{grid-template-columns:auto auto minmax(0,1fr) auto;align-items:center}",
       ".result-main{min-width:0}",
       ".result-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}",
@@ -146,104 +147,107 @@
   function updatePlayerFilterUI() {
     const input = document.getElementById("playerFilterInput");
     const clear = document.getElementById("playerFilterClear");
+    const results = document.getElementById("playerFilterResults");
     if (!input || !clear) return;
 
     input.placeholder = txt("Rechercher un joueur…", "Search a player…");
     clear.setAttribute("aria-label", txt("Effacer la recherche", "Clear search"));
     clear.title = txt("Effacer la recherche", "Clear search");
     clear.classList.toggle("visible", !!playerFilterQuery);
+
+    if (results) results.classList.toggle("visible", !!playerFilterQuery);
   }
 
-  function positionFilterResults() {
-    const input = document.getElementById("playerFilterInput");
-    const box = document.getElementById("playersList");
-    if (!input || !box || !playerFilterQuery) return;
+  function playerRowHtml(p, i) {
+    const hasData = p.vehicles && p.vehicles.length > 0;
+    let meta;
 
-    const r = input.getBoundingClientRect();
-    const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-    const top = Math.round(r.bottom + 6);
-    const available = Math.max(100, Math.min(260, viewportHeight - top - 12));
-
-    box.style.left = Math.round(r.left) + "px";
-    box.style.top = top + "px";
-    box.style.width = Math.round(r.width) + "px";
-    box.style.maxHeight = available + "px";
-  }
-
-  function enterFilterMode() {
-    const box = document.getElementById("playersList");
-    if (!box || box.classList.contains("filter-active")) return;
-
-    const spacer = document.createElement("div");
-    spacer.id = "playerFilterSpacer";
-    spacer.className = "filter-spacer";
-    spacer.style.height = Math.max(0, box.offsetHeight) + "px";
-    box.parentNode.insertBefore(spacer, box.nextSibling);
-
-    box.classList.add("filter-active");
-    positionFilterResults();
-  }
-
-  function leaveFilterMode() {
-    const box = document.getElementById("playersList");
-    const spacer = document.getElementById("playerFilterSpacer");
-
-    if (box) {
-      box.classList.remove("filter-active");
-      box.style.left = "";
-      box.style.top = "";
-      box.style.width = "";
-      box.style.maxHeight = "";
+    if (!hasData) {
+      meta = txt("Aucune APC renseignée", "No APC data");
+    } else {
+      const count = p.vehicles.length;
+      const best = bestVehicle(p);
+      meta = count + " " + txt(
+        count > 1 ? "APC renseignées" : "APC renseignée",
+        count > 1 ? "APCs listed" : "APC listed"
+      ) + " · " + txt("Meilleure : ", "Best: ") + apcLabel(best) + " · " + vehicleDisplay(best);
     }
-    if (spacer && spacer.parentNode) spacer.parentNode.removeChild(spacer);
+
+    return '<label class="player-row' + (p.selected ? ' selected' : '') + (!hasData ? ' no-data' : '') + '">' +
+      '<input class="check" type="checkbox" ' + (p.selected ? 'checked' : '') + ' data-i="' + i + '">' +
+      '<div class="avatar">' + silhouette() + '</div>' +
+      '<div><div class="player-name">' + escapeHtml(p.name) + '</div><div class="player-meta">' + escapeHtml(meta) + '</div></div>' +
+    '</label>';
+  }
+
+  function bindPlayerChecks(container) {
+    if (!container) return;
+    container.querySelectorAll(".check").forEach(function(c) {
+      c.onchange = function(e) {
+        players[+e.target.dataset.i].selected = e.target.checked;
+        renderAll();
+      };
+    });
+  }
+
+  function renderFilterResults() {
+    const results = document.getElementById("playerFilterResults");
+    if (!results) return;
+
+    const q = normalizePlayerText(playerFilterQuery.trim());
+
+    if (!q) {
+      results.innerHTML = "";
+      results.classList.remove("visible");
+      return;
+    }
+
+    const rows = [];
+    players.forEach(function(p, i) {
+      if (normalizePlayerText(p.name).indexOf(q) !== -1) {
+        rows.push(playerRowHtml(p, i));
+      }
+    });
+
+    results.innerHTML = rows.length
+      ? rows.join("")
+      : '<div class="empty-state">' + txt("Aucun joueur trouvé.", "No player found.") + '</div>';
+
+    results.classList.add("visible");
+    bindPlayerChecks(results);
   }
 
   function setupPlayerFilter() {
     const input = document.getElementById("playerFilterInput");
     const clear = document.getElementById("playerFilterClear");
-    if (!input || !clear || input.dataset.ready === "1") return;
+    const wrapper = input ? input.parentNode : null;
+    if (!input || !clear || !wrapper || input.dataset.ready === "1") return;
+
+    let results = document.getElementById("playerFilterResults");
+    if (!results) {
+      results = document.createElement("div");
+      results.id = "playerFilterResults";
+      results.className = "player-filter-results";
+      wrapper.appendChild(results);
+    }
 
     input.dataset.ready = "1";
     input.value = playerFilterQuery;
     updatePlayerFilterUI();
 
     input.addEventListener("input", function() {
-      const wasEmpty = !playerFilterQuery;
       playerFilterQuery = input.value || "";
-
-      if (playerFilterQuery) {
-        if (wasEmpty) enterFilterMode();
-        renderPlayers();
-        requestAnimationFrame(positionFilterResults);
-      } else {
-        leaveFilterMode();
-        renderPlayers();
-      }
-
       updatePlayerFilterUI();
+      renderFilterResults();
     });
 
     clear.addEventListener("click", function() {
       playerFilterQuery = "";
       input.value = "";
-      leaveFilterMode();
       updatePlayerFilterUI();
-      renderPlayers();
+      renderFilterResults();
       input.focus();
     });
-
-    window.addEventListener("resize", function() {
-      if (playerFilterQuery) positionFilterResults();
-    });
-
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener("resize", function() {
-        if (playerFilterQuery) positionFilterResults();
-      });
-      window.visualViewport.addEventListener("scroll", function() {
-        if (playerFilterQuery) positionFilterResults();
-      });
-    }
   }
 
   function parseSimplePower(raw) {
@@ -406,48 +410,13 @@
 
   renderPlayers = function() {
     const box = document.getElementById("playersList");
-    box.innerHTML = "";
+    box.innerHTML = players.map(function(p, i) {
+      return playerRowHtml(p, i);
+    }).join("");
 
-    const q = normalizePlayerText(playerFilterQuery.trim());
-    let visibleCount = 0;
-
-    players.forEach(function(p,i) {
-      if (q && normalizePlayerText(p.name).indexOf(q) === -1) return;
-
-      visibleCount++;
-      const hasData = p.vehicles && p.vehicles.length > 0;
-      const row = document.createElement("label");
-      row.className = "player-row" + (p.selected ? " selected" : "") + (!hasData ? " no-data" : "");
-
-      let meta;
-      if (!hasData) {
-        meta = txt("Aucune APC renseignée", "No APC data");
-      } else {
-        const count = p.vehicles.length;
-        const best = bestVehicle(p);
-        meta = count + " " + txt(count > 1 ? "APC renseignées" : "APC renseignée", count > 1 ? "APCs listed" : "APC listed") +
-          " · " + txt("Meilleure : ", "Best: ") + apcLabel(best) + " · " + vehicleDisplay(best);
-      }
-
-      row.innerHTML =
-        '<input class="check" type="checkbox" ' + (p.selected ? "checked" : "") + ' data-i="' + i + '">' +
-        '<div class="avatar">' + silhouette() + '</div>' +
-        '<div><div class="player-name">' + escapeHtml(p.name) + '</div><div class="player-meta">' + escapeHtml(meta) + '</div></div>';
-      box.appendChild(row);
-    });
-
-    if (!visibleCount && q) {
-      box.innerHTML = '<div class="empty-state">' + txt("Aucun joueur trouvé.", "No player found.") + '</div>';
-    }
-
-    box.querySelectorAll(".check").forEach(function(c) {
-      c.onchange = function(e) {
-        players[+e.target.dataset.i].selected = e.target.checked;
-        renderAll();
-      };
-    });
-
+    bindPlayerChecks(box);
     updatePlayerFilterUI();
+    renderFilterResults();
   };
 
   renderVehicles = function() {
