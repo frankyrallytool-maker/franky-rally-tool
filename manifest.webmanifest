@@ -1,0 +1,22 @@
+{
+  "name": "FRANKY RALLY TOOL",
+  "short_name": "Franky Rally",
+  "description": "Dark War Survival rally planning companion",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#050911",
+  "theme_color": "#07111d",
+  "icons": [
+    {
+      "src": "./franky-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./franky-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
