@@ -1,6 +1,6 @@
 (function () {
   const API_URL = "https://script.google.com/macros/s/AKfycbxuxysWcVsk_Y6eARCGne_iH-hGUOSkAa2bkTuDLGXU9jgJ1sJPgz58Q41Cf0UcVo8svA/exec";
-  const APP_BUILD = "1.10.11";
+  const APP_BUILD = "1.10.12";
   const CACHE_KEY = "franky_sheet_cache_v2";
   const CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
@@ -271,13 +271,36 @@
     let s = String(raw == null ? "" : raw).trim();
     if (!s) return null;
 
-    s = s.replace(/\s+/g, "").replace(",", ".");
-    const m = s.match(/^(\d+(?:\.\d+)?)([mMgG])?$/);
+    // Accept both decimal conventions used by alliance members:
+    // 192,5 / 192.5 / 192,5 M / 192.5M.
+    // Also tolerate normal, non-breaking and thin spaces from Google Sheets.
+    s = s.replace(/[\s\u00A0\u202F]/g, "");
+
+    const unitMatch = s.match(/([mMgG])$/);
+    const unit = unitMatch ? unitMatch[1].toLowerCase() : "";
+    if (unitMatch) s = s.slice(0, -1);
+
+    const lastComma = s.lastIndexOf(",");
+    const lastDot = s.lastIndexOf(".");
+
+    if (lastComma !== -1 && lastDot !== -1) {
+      // If both separators are present, the last one is treated as the decimal
+      // separator and the other one as a thousands separator.
+      if (lastComma > lastDot) {
+        s = s.replace(/\./g, "").replace(/,/g, ".");
+      } else {
+        s = s.replace(/,/g, "");
+      }
+    } else if (lastComma !== -1) {
+      s = s.replace(/,/g, ".");
+    }
+
+    const m = s.match(/^(?:\d+(?:\.\d+)?|\.\d+)$/);
     if (!m) return null;
 
-    let n = parseFloat(m[1]);
+    let n = parseFloat(s);
     if (!Number.isFinite(n) || n <= 0) return null;
-    if ((m[2] || "").toLowerCase() === "g") n *= 1000;
+    if (unit === "g") n *= 1000;
     return n;
   }
 
