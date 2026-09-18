@@ -317,8 +317,8 @@ select{
 
             <div class="controls">
               <div class="control-row">
-                <label data-i18n="leaders">Target rally leaders</label>
-                <select id="leaderCount"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option></select>
+                <label data-i18n="leaders">Number of rallies</label>
+                <select id="leaderCount"><option>1</option><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select>
               </div>
               <button class="primary" id="calculateBtn" data-i18n="calculate">Calculate rallies</button>
             </div>
@@ -350,7 +350,7 @@ select{
           </div>
         </div>
 
-        <div class="footer">FRANKY RALLY TOOL · Prototype V1.6</div>
+        <div class="footer">FRANKY RALLY TOOL · V1.7 · APC POWER RANKING</div>
       </section>
     </div>
   </div>
@@ -370,18 +370,18 @@ const players=[
 
 const tr={
 en:{
-brandSub:"Dark War Survival companion",bannerText:"SOME FIGHT\nSO WE SURVIVE",desktopTitle:"Franky Rally Planner",desktopText:"A simple alliance tool built around vehicle power and rally capacity.",
+brandSub:"Dark War Survival companion",bannerText:"SOME FIGHT\nSO WE SURVIVE",desktopTitle:"Franky Rally Planner",desktopText:"Select who is online, choose how many rallies to launch, and rank every available APC individually by power.",
 attendanceTab:"Attendance",vehiclesTab:"Vehicles",resultsTab:"Results",attendanceTitle:"Franky — Attendance",attendanceSub:"Select the players currently online for the calculation.",
-online:"Players online",leaders:"Target rally leaders",calculate:"Calculate rallies",vehiclesTitle:"Available Vehicles",vehiclesSub:"Criteria: Vehicle Power + Rally Capacity",
-resultsTitle:"Results",recommended:"Recommended rally leaders",resultsSub:"The best leaders are selected using vehicle power and rally capacity.",
-tip:"All other vehicles join open rallies to help fill them.",back:"Back to attendance",present:"Online",absent:"Offline",power:"Power",capacity:"Rally Capacity",cap:"capacity"
+online:"Players online",leaders:"Number of rallies",calculate:"Build rally plan",vehiclesTitle:"Available APCs",vehiclesSub:"All APCs from selected players, ranked individually by power.",
+resultsTitle:"Results",recommended:"Recommended starter APCs",resultsSub:"The strongest individual APCs are selected from all players currently online.",
+tip:"The remaining APCs stay available to join the open rallies.",back:"Back to attendance",present:"Online",absent:"Offline",power:"Power",capacity:"Rally Capacity",cap:"capacity"
 },
 fr:{
-brandSub:"Compagnon Dark War Survival",bannerText:"CERTAINS COMBATTENT\nPOUR NOUS FAIRE SURVIVRE",desktopTitle:"Planificateur Franky",desktopText:"Un outil simple basé sur la puissance des véhicules et la capacité des rallys.",
+brandSub:"Compagnon Dark War Survival",bannerText:"CERTAINS COMBATTENT\nPOUR NOUS FAIRE SURVIVRE",desktopTitle:"Planificateur Franky",desktopText:"Sélectionnez les présents, choisissez le nombre de rallys à lancer et classez chaque APC disponible individuellement par puissance.",
 attendanceTab:"Présences",vehiclesTab:"Véhicules",resultsTab:"Résultats",attendanceTitle:"Franky — Présences",attendanceSub:"Sélectionnez les joueurs actuellement présents.",
-online:"Joueurs présents",leaders:"Nombre de lanceurs ciblé",calculate:"Calculer les rallys",vehiclesTitle:"Véhicules disponibles",vehiclesSub:"Critères : puissance du véhicule + capacité du rally",
-resultsTitle:"Résultats",recommended:"Lanceurs recommandés",resultsSub:"Les meilleurs lanceurs sont sélectionnés selon la puissance et la capacité du rally.",
-tip:"Les autres véhicules rejoignent les rallys ouverts pour aider à les remplir.",back:"Retour aux présences",present:"Présent",absent:"Absent",power:"Puissance",capacity:"Capacité Rally",cap:"capacité"
+online:"Joueurs présents",leaders:"Nombre de rallys",calculate:"Construire le plan",vehiclesTitle:"APC disponibles",vehiclesSub:"Toutes les APC des joueurs présents, classées individuellement par puissance.",
+resultsTitle:"Résultats",recommended:"APC recommandées pour lancer",resultsSub:"Les APC les plus puissantes sont sélectionnées individuellement parmi tous les joueurs présents.",
+tip:"Les autres APC restent disponibles pour rejoindre les rallys ouverts.",back:"Retour aux présences",present:"Présent",absent:"Absent",power:"Puissance",capacity:"Capacité Rally",cap:"capacité"
 }
 };
 let lang="en";
@@ -455,6 +455,6 @@ document.getElementById("enBtn").onclick=()=>{lang="en";renderAll()};
 document.getElementById("frBtn").onclick=()=>{lang="fr";renderAll()};
 renderAll();
 </script>
-<script src="./live-data.js?v=1"></script>
+<script src="./live-data.js?v=2"></script>
 </body>
 </html>
