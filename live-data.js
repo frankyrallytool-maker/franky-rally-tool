@@ -1,6 +1,6 @@
 (function () {
   const API_URL = "https://script.google.com/macros/s/AKfycbxuxysWcVsk_Y6eARCGne_iH-hGUOSkAa2bkTuDLGXU9jgJ1sJPgz58Q41Cf0UcVo8svA/exec";
-  const APP_BUILD = "1.10.4";
+  const APP_BUILD = "1.10.5";
   const CACHE_KEY = "franky_sheet_cache_v2";
   const CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
@@ -21,6 +21,7 @@
   let lastSync = null;
   let sourceSchema = "unknown";
   let playerFilterQuery = "";
+  let playerFilterMinHeight = 0;
 
   function txt(fr, en) { return lang === "fr" ? fr : en; }
 
@@ -155,24 +156,61 @@
   function setupPlayerFilter() {
     const input = document.getElementById("playerFilterInput");
     const clear = document.getElementById("playerFilterClear");
-    if (!input || !clear || input.dataset.ready === "1") return;
+    const box = document.getElementById("playersList");
+    if (!input || !clear || !box || input.dataset.ready === "1") return;
 
     input.dataset.ready = "1";
     input.value = playerFilterQuery;
     updatePlayerFilterUI();
 
+    input.addEventListener("focus", function() {
+      // Keep the page height stable while filtering.
+      // On iPhone, shrinking a long list while the keyboard is open makes Safari
+      // clamp the scroll position, which causes the visible "jump".
+      playerFilterMinHeight = Math.max(playerFilterMinHeight, box.offsetHeight, box.scrollHeight);
+      if (playerFilterMinHeight > 0) box.style.minHeight = playerFilterMinHeight + "px";
+    });
+
     input.addEventListener("input", function() {
       playerFilterQuery = input.value || "";
+
+      if (playerFilterQuery) {
+        playerFilterMinHeight = Math.max(playerFilterMinHeight, box.offsetHeight, box.scrollHeight);
+        if (playerFilterMinHeight > 0) box.style.minHeight = playerFilterMinHeight + "px";
+      } else {
+        box.style.minHeight = "";
+        playerFilterMinHeight = 0;
+      }
+
       updatePlayerFilterUI();
       renderPlayers();
+
+      // If the first match would sit behind the iPhone keyboard,
+      // move only enough to reveal it. Otherwise do not move the page.
+      if (playerFilterQuery) {
+        requestAnimationFrame(function() {
+          const first = box.querySelector(".player-row");
+          if (!first) return;
+
+          const rect = first.getBoundingClientRect();
+          const visibleHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+          const safeBottom = visibleHeight - 16;
+
+          if (rect.bottom > safeBottom || rect.top < 0) {
+            first.scrollIntoView({block:"nearest", inline:"nearest"});
+          }
+        });
+      }
     });
 
     clear.addEventListener("click", function() {
       playerFilterQuery = "";
       input.value = "";
+      box.style.minHeight = "";
+      playerFilterMinHeight = 0;
       updatePlayerFilterUI();
       renderPlayers();
-      input.focus();
+      input.blur();
     });
   }
 
