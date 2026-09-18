@@ -49,7 +49,10 @@ button{cursor:pointer}
   box-shadow:none;
 }
 .app-header{
-  height:74px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  min-height:calc(74px + env(safe-area-inset-top));
+  height:auto;
+  padding:calc(12px + env(safe-area-inset-top)) 14px 12px;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
   background:linear-gradient(180deg,#091522,#07111c);
   border-bottom:1px solid #14273c;
 }
@@ -253,7 +256,7 @@ select{
 <link rel="apple-touch-icon" href="https://frankyrallytool-maker.github.io/franky-rally-tool/franky-icon-180.png?v=2">
 <link rel="apple-touch-icon-precomposed" href="https://frankyrallytool-maker.github.io/franky-rally-tool/franky-icon-180.png?v=2">
 <link rel="icon" type="image/png" sizes="192x192" href="https://frankyrallytool-maker.github.io/franky-rally-tool/franky-icon-192.png?v=2">
-<link rel="manifest" href="./manifest.webmanifest?v=14">
+<link rel="manifest" href="./manifest.webmanifest?v=15">
 
 </head>
 <body>
@@ -367,7 +370,7 @@ select{
           </div>
         </div>
 
-        <div class="footer">FRANKY RALLY TOOL · V1.10.9 · QUICK FILTER SELECT</div>
+        <div class="footer">FRANKY RALLY TOOL · V1.10.10 · IPHONE SAFE AREA</div>
       </section>
     </div>
   </div>
@@ -472,6 +475,6 @@ document.getElementById("enBtn").onclick=()=>{lang="en";renderAll()};
 document.getElementById("frBtn").onclick=()=>{lang="fr";renderAll()};
 renderAll();
 </script>
-<script src="./live-data.js?v=15"></script>
+<script src="./live-data.js?v=16"></script>
 </body>
 </html>
