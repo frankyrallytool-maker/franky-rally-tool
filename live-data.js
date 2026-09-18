@@ -1,6 +1,6 @@
 (function () {
   const API_URL = "https://script.google.com/macros/s/AKfycbxuxysWcVsk_Y6eARCGne_iH-hGUOSkAa2bkTuDLGXU9jgJ1sJPgz58Q41Cf0UcVo8svA/exec";
-  const APP_BUILD = "1.10.3";
+  const APP_BUILD = "1.10.4";
   const CACHE_KEY = "franky_sheet_cache_v2";
   const CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
@@ -56,9 +56,10 @@
       ".player-filter button{display:none;position:absolute;right:5px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:0;border-radius:8px;background:#14273b;color:#b8cce0;font-size:20px;line-height:1;padding:0}",
       ".player-filter button.visible{display:grid;place-items:center}",
       ".player-filter button:hover{background:#1a3855;color:#fff}",
-      ".result-card{grid-template-columns:auto auto minmax(0,1fr) auto}",
+      ".result-card{grid-template-columns:auto auto minmax(0,1fr) auto;align-items:center}",
+      ".result-main{min-width:0}",
       ".result-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}",
-      ".result-apc{color:#79d8ff;font-weight:950;margin-left:5px}",
+      ".result-right{text-align:right}",
       ".result-right span{font-weight:950;letter-spacing:.03em}"
     ].join("");
     document.head.appendChild(style);
@@ -447,7 +448,7 @@
         return '<div class="result-card">' +
           '<div class="rank">' + (i+1) + '</div>' +
           '<div class="avatar">' + silhouette() + '</div>' +
-          '<div><div class="result-name">' + escapeHtml(x.player) + '<span class="result-apc"> ' + escapeHtml(apcLabel(v)) + '</span></div></div>' +
+          '<div class="result-main"><div class="result-name">' + escapeHtml(x.player) + '</div><div class="vehicle-sub">' + escapeHtml(apcLabel(v)) + '</div></div>' +
           '<div class="result-right"><strong>' + escapeHtml(vehicleDisplay(v)) + '</strong><span>START RALLY</span></div>' +
         '</div>';
       }).join("");
