@@ -249,7 +249,7 @@ select{
 <link rel="apple-touch-icon" href="https://frankyrallytool-maker.github.io/franky-rally-tool/franky-icon-180.png?v=2">
 <link rel="apple-touch-icon-precomposed" href="https://frankyrallytool-maker.github.io/franky-rally-tool/franky-icon-180.png?v=2">
 <link rel="icon" type="image/png" sizes="192x192" href="https://frankyrallytool-maker.github.io/franky-rally-tool/franky-icon-192.png?v=2">
-<link rel="manifest" href="./manifest.webmanifest?v=4">
+<link rel="manifest" href="./manifest.webmanifest?v=5">
 
 </head>
 <body>
@@ -325,6 +325,11 @@ select{
               <select id="leaderCount"><option>1</option><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select>
             </div>
 
+            <div class="player-filter">
+              <input id="playerFilterInput" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Search a player…">
+              <button id="playerFilterClear" type="button" aria-label="Clear search" title="Clear search">×</button>
+            </div>
+
             <div class="players" id="playersList"></div>
 
             <div class="controls">
@@ -358,7 +363,7 @@ select{
           </div>
         </div>
 
-        <div class="footer">FRANKY RALLY TOOL · V1.9 · SHEET 3 APC DATA</div>
+        <div class="footer">FRANKY RALLY TOOL · V1.10 · PLAYER SEARCH</div>
       </section>
     </div>
   </div>
@@ -463,6 +468,6 @@ document.getElementById("enBtn").onclick=()=>{lang="en";renderAll()};
 document.getElementById("frBtn").onclick=()=>{lang="fr";renderAll()};
 renderAll();
 </script>
-<script src="./live-data.js?v=5"></script>
+<script src="./live-data.js?v=6"></script>
 </body>
 </html>
