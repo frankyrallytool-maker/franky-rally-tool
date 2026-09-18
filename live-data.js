@@ -1,6 +1,6 @@
 (function () {
   const API_URL = "https://script.google.com/macros/s/AKfycbxuxysWcVsk_Y6eARCGne_iH-hGUOSkAa2bkTuDLGXU9jgJ1sJPgz58Q41Cf0UcVo8svA/exec";
-  const APP_BUILD = "1.10.8";
+  const APP_BUILD = "1.10.9";
   const CACHE_KEY = "franky_sheet_cache_v2";
   const CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
@@ -185,6 +185,23 @@
     container.querySelectorAll(".check").forEach(function(c) {
       c.onchange = function(e) {
         players[+e.target.dataset.i].selected = e.target.checked;
+
+        const fromFilter = container.id === "playerFilterResults";
+        if (fromFilter && e.target.checked) {
+          const input = document.getElementById("playerFilterInput");
+
+          playerFilterQuery = "";
+          if (input) input.value = "";
+
+          renderAll();
+
+          // Keep the keyboard ready so the next player can be searched immediately.
+          if (input) {
+            requestAnimationFrame(function() { input.focus(); });
+          }
+          return;
+        }
+
         renderAll();
       };
     });
