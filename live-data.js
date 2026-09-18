@@ -1,6 +1,6 @@
 (function () {
   const API_URL = "https://script.google.com/macros/s/AKfycbxuxysWcVsk_Y6eARCGne_iH-hGUOSkAa2bkTuDLGXU9jgJ1sJPgz58Q41Cf0UcVo8svA/exec";
-  const APP_BUILD = "1.10.7";
+  const APP_BUILD = "1.10.8";
   const CACHE_KEY = "franky_sheet_cache_v2";
   const CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
@@ -50,12 +50,12 @@
       ".rally-top label{font-size:11px;color:#c5e8ff;font-weight:900}",
       ".rally-top select{min-width:82px;font-size:13px;font-weight:950;border-color:#3474a9;background:#0d2135}",
       ".player-filter{position:relative;margin:0 0 9px}",
-      ".player-filter input{width:100%;height:42px;padding:8px 42px 8px 12px;border-radius:10px;border:1px solid #26445f;background:#091522;color:#eef7ff;outline:none;font-size:16px;font-weight:700}",
-      ".player-filter input::placeholder{color:#688099;font-weight:700}",
-      ".player-filter input:focus{border-color:#278ee6;box-shadow:0 0 0 2px rgba(39,142,230,.12)}",
-      ".player-filter button{display:none;position:absolute;right:5px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:0;border-radius:8px;background:#14273b;color:#b8cce0;font-size:20px;line-height:1;padding:0}",
-      ".player-filter button.visible{display:grid;place-items:center}",
-      ".player-filter button:hover{background:#1a3855;color:#fff}",
+      "#playerFilterInput{width:100%;height:42px;padding:8px 42px 8px 12px;border-radius:10px;border:1px solid #26445f;background:#091522;color:#eef7ff;outline:none;font-size:16px;font-weight:700}",
+      "#playerFilterInput::placeholder{color:#688099;font-weight:700}",
+      "#playerFilterInput:focus{border-color:#278ee6;box-shadow:0 0 0 2px rgba(39,142,230,.12)}",
+      "#playerFilterClear{display:none;position:absolute;right:5px;top:21px;transform:translateY(-50%);width:30px;height:30px;border:0;border-radius:8px;background:#14273b;color:#b8cce0;font-size:20px;line-height:1;padding:0;z-index:10001}",
+      "#playerFilterClear.visible{display:grid;place-items:center}",
+      "#playerFilterClear:hover{background:#1a3855;color:#fff}",
       ".player-filter-results{display:none;position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:9999;max-height:190px;overflow-y:auto;padding:6px;border:1px solid #2b5277;border-radius:12px;background:#08131f;box-shadow:0 14px 36px rgba(0,0,0,.55);-webkit-overflow-scrolling:touch}",
       ".player-filter-results.visible{display:grid;gap:5px}",
       ".player-filter-results .player-row{margin:0}",
