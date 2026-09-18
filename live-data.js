@@ -14,6 +14,7 @@
     { label: "> 1G", estimate: 1100 }
   ];
 
+  const APP_BUILD = "1.8.1";
   const CACHE_KEY = "franky_sheet_cache_v1";
   const CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
   let syncState = "loading";
@@ -43,9 +44,44 @@
       ".pending-capacity{margin-top:8px;padding:8px 10px;border-radius:9px;background:rgba(233,178,71,.10);border:1px solid rgba(233,178,71,.25);font-size:9px;line-height:1.45;color:#e8c987}",
       ".apc-summary{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 9px}",
       ".apc-chip{padding:6px 8px;border-radius:8px;border:1px solid #203b57;background:#0b1724;color:#91a7bf;font-size:9px;font-weight:800}",
-      ".apc-chip strong{color:#d8ecff;font-size:10px}"
+      ".apc-chip strong{color:#d8ecff;font-size:10px}",
+      ".rally-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 9px;padding:9px 11px;border:1px solid #285278;border-radius:10px;background:linear-gradient(180deg,rgba(16,45,72,.78),rgba(9,27,44,.78))}",
+      ".rally-top label{font-size:11px;color:#c5e8ff;font-weight:900}",
+      ".rally-top select{min-width:82px;font-size:13px;font-weight:950;border-color:#3474a9;background:#0d2135}"
     ].join("");
     document.head.appendChild(style);
+  }
+
+  function checkForAppUpdate() {
+    try {
+      fetch("./version.json?t=" + Date.now(), { cache: "no-store" })
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(v) {
+          if (!v || !v.build || v.build === APP_BUILD) return;
+          const url = new URL(window.location.href);
+          url.searchParams.set("appv", v.build);
+          window.location.replace(url.toString());
+        })
+        .catch(function(){});
+    } catch (_) {}
+  }
+
+  function ensureRallySelectorOnTop() {
+    const select = document.getElementById("leaderCount");
+    const playersList = document.getElementById("playersList");
+    if (!select || !playersList) return;
+
+    let current = select.closest ? select.closest(".rally-top") : null;
+    if (current) return;
+
+    const oldRow = select.closest ? select.closest(".control-row") : null;
+    const label = oldRow ? oldRow.querySelector("label") : null;
+    const top = document.createElement("div");
+    top.className = "rally-top";
+    if (label) top.appendChild(label);
+    top.appendChild(select);
+    playersList.parentNode.insertBefore(top, playersList);
+    if (oldRow && oldRow.parentNode && oldRow.children.length === 0) oldRow.parentNode.removeChild(oldRow);
   }
 
   function addSyncStrip() {
@@ -353,7 +389,9 @@
   }
 
   addLiveStyles();
+  ensureRallySelectorOnTop();
   addSyncStrip();
+  checkForAppUpdate();
   players.splice(0,players.length);
   renderAll();
 
