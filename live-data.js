@@ -1,7 +1,10 @@
 (function () {
   const API_URL = "https://script.google.com/macros/s/AKfycbxuxysWcVsk_Y6eARCGne_iH-hGUOSkAa2bkTuDLGXU9jgJ1sJPgz58Q41Cf0UcVo8svA/exec";
+  const APP_BUILD = "1.9.0";
+  const CACHE_KEY = "franky_sheet_cache_v2";
+  const CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
-  const POWER_RANGES = [
+  const LEGACY_RANGES = [
     { label: "< 200M", estimate: 150 },
     { label: "200–299M", estimate: 250 },
     { label: "300–399M", estimate: 350 },
@@ -14,11 +17,9 @@
     { label: "> 1G", estimate: 1100 }
   ];
 
-  const APP_BUILD = "1.8.1";
-  const CACHE_KEY = "franky_sheet_cache_v1";
-  const CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
   let syncState = "loading";
   let lastSync = null;
+  let sourceSchema = "unknown";
 
   function txt(fr, en) { return lang === "fr" ? fr : en; }
 
@@ -37,8 +38,7 @@
       ".sync-dot{width:7px;height:7px;border-radius:50%;background:#f2b84b;box-shadow:0 0 9px rgba(242,184,75,.45);flex:none}",
       ".sync-strip.ok .sync-dot{background:#35d785;box-shadow:0 0 9px rgba(53,215,133,.5)}",
       ".sync-strip.error .sync-dot{background:#ff6b6b;box-shadow:0 0 9px rgba(255,107,107,.5)}",
-      ".player-row.no-data{opacity:.52}",
-      ".player-row.no-data .check{cursor:not-allowed}",
+      ".player-row.no-data{opacity:.58}",
       ".vehicle-range{font-size:10px;color:#9bdfff;font-weight:900;margin-top:3px}",
       ".empty-state{padding:18px 12px;text-align:center;border:1px dashed #27425f;border-radius:10px;color:#7890aa;font-size:10px}",
       ".pending-capacity{margin-top:8px;padding:8px 10px;border-radius:9px;background:rgba(233,178,71,.10);border:1px solid rgba(233,178,71,.25);font-size:9px;line-height:1.45;color:#e8c987}",
@@ -70,8 +70,7 @@
     const select = document.getElementById("leaderCount");
     const playersList = document.getElementById("playersList");
     if (!select || !playersList) return;
-
-    let current = select.closest ? select.closest(".rally-top") : null;
+    const current = select.closest ? select.closest(".rally-top") : null;
     if (current) return;
 
     const oldRow = select.closest ? select.closest(".control-row") : null;
@@ -87,6 +86,7 @@
   function addSyncStrip() {
     const panel = document.querySelector("#attendance .panel");
     if (!panel || document.getElementById("syncStrip")) return;
+
     const strip = document.createElement("div");
     strip.id = "syncStrip";
     strip.className = "sync-strip";
@@ -104,7 +104,9 @@
     const strip = document.getElementById("syncStrip");
     const label = document.getElementById("syncText");
     if (!strip || !label) return;
+
     strip.className = "sync-strip " + (syncState === "ok" ? "ok" : syncState === "error" ? "error" : "");
+
     if (syncState === "loading") {
       label.textContent = txt("Chargement du Google Sheet…", "Loading Google Sheet…");
     } else if (syncState === "cached") {
@@ -113,43 +115,23 @@
       label.textContent = txt("Données enregistrées utilisées · mise à jour impossible.", "Using saved data · live refresh unavailable.");
     } else {
       const time = lastSync ? new Date(lastSync).toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"}) : "";
-      label.textContent = txt("Données Google Sheet à jour", "Google Sheet data up to date") + (time ? " · " + time : "");
+      const source = sourceSchema === "apc" ? " · Feuille 3" : "";
+      label.textContent = txt("Données Google Sheet à jour", "Google Sheet data up to date") + source + (time ? " · " + time : "");
     }
   }
 
-  function parseExactValue(num, unit, rangeIndex) {
-    let n = parseFloat(String(num).replace(",", "."));
-    if (!Number.isFinite(n)) return null;
-    const u = String(unit || "").toLowerCase();
-    if (u === "g") return n * 1000;
-    if (u === "m") return n;
-    if (rangeIndex === 9 && n < 10) return n * 1000;
+  function parseSimplePower(raw) {
+    let s = String(raw == null ? "" : raw).trim();
+    if (!s) return null;
+
+    s = s.replace(/\s+/g, "").replace(",", ".");
+    const m = s.match(/^(\d+(?:\.\d+)?)([mMgG])?$/);
+    if (!m) return null;
+
+    let n = parseFloat(m[1]);
+    if (!Number.isFinite(n) || n <= 0) return null;
+    if ((m[2] || "").toLowerCase() === "g") n *= 1000;
     return n;
-  }
-
-  function parsePowerCell(raw, rangeIndex) {
-    let s = String(raw || "").trim();
-    if (!s) return [];
-    const range = POWER_RANGES[rangeIndex];
-    const cars = [];
-
-    s = s.replace(/(\d+)\s*[x×]\s*(\d+(?:[.,]\d+)?)\s*([mMgG])?/g, function(_, count, value, unit) {
-      const p = parseExactValue(value, unit, rangeIndex);
-      const c = Math.min(8, Math.max(1, parseInt(count, 10) || 1));
-      if (p !== null) for (let i=0; i<c; i++) cars.push({powerM:p, exact:true, rangeLabel:range.label});
-      return " ";
-    });
-
-    const numRe = /(\d+(?:[.,]\d+)?)\s*([mMgG])?/g;
-    let match;
-    while ((match = numRe.exec(s)) !== null) {
-      const p = parseExactValue(match[1], match[2], rangeIndex);
-      if (p !== null) cars.push({powerM:p, exact:true, rangeLabel:range.label});
-    }
-
-    const xCount = (s.match(/\bX\b/gi) || []).length;
-    for (let i=0; i<xCount; i++) cars.push({powerM:range.estimate, exact:false, rangeLabel:range.label});
-    return cars;
   }
 
   function formatPowerM(powerM) {
@@ -162,20 +144,103 @@
     return String(m).replace(/\.0$/,"") + " M";
   }
 
-  function vehicleDisplay(v) { return v.exact ? formatPowerM(v.powerM) : v.rangeLabel; }
+  function vehicleDisplay(v) {
+    if (v.exact) return formatPowerM(v.powerM);
+    return v.rangeLabel || formatPowerM(v.powerM);
+  }
 
-  function parseSheet(values) {
-    if (!Array.isArray(values) || values.length < 2) return [];
+  function isApcSheet(values) {
+    if (!Array.isArray(values) || !values.length || !Array.isArray(values[0])) return false;
+    const h = values[0].map(function(v){ return String(v || "").toLowerCase(); });
+    return h[0].indexOf("giocatore") !== -1 &&
+           h[1] && h[1].indexOf("macchina 1") !== -1 &&
+           h[2] && h[2].indexOf("macchina 2") !== -1;
+  }
+
+  function parseApcSheet(values) {
     const result = [];
     values.slice(1).forEach(function(row) {
       const name = String(row[0] || "").trim();
       if (!name) return;
+
       const vehicles = [];
-      for (let i=0; i<POWER_RANGES.length; i++) {
-        parsePowerCell(row[i+1], i).forEach(v => vehicles.push(v));
+      for (let col = 1; col <= 4; col++) {
+        const power = parseSimplePower(row[col]);
+        if (power === null) continue;
+        vehicles.push({
+          apcNo: col,
+          powerM: power,
+          exact: true,
+          capacity: null
+        });
       }
-      vehicles.sort((a,b) => b.powerM - a.powerM);
-      vehicles.forEach(v => { v.capacity=null; });
+
+      const bestPower = vehicles.reduce(function(max, v) {
+        return Math.max(max, v.powerM);
+      }, 0);
+
+      result.push({
+        name: name,
+        selected: false,
+        vehicles: vehicles,
+        power: bestPower,
+        capacity: null
+      });
+    });
+    return result;
+  }
+
+  function parseLegacyExactValue(num, unit, rangeIndex) {
+    let n = parseFloat(String(num).replace(",", "."));
+    if (!Number.isFinite(n)) return null;
+    const u = String(unit || "").toLowerCase();
+    if (u === "g") return n * 1000;
+    if (u === "m") return n;
+    if (rangeIndex === 9 && n < 10) return n * 1000;
+    return n;
+  }
+
+  function parseLegacyCell(raw, rangeIndex) {
+    let s = String(raw || "").trim();
+    if (!s) return [];
+    const range = LEGACY_RANGES[rangeIndex];
+    const cars = [];
+
+    s = s.replace(/(\d+)\s*[x×]\s*(\d+(?:[.,]\d+)?)\s*([mMgG])?/g, function(_, count, value, unit) {
+      const p = parseLegacyExactValue(value, unit, rangeIndex);
+      const c = Math.min(8, Math.max(1, parseInt(count, 10) || 1));
+      if (p !== null) {
+        for (let i=0; i<c; i++) cars.push({powerM:p, exact:true, rangeLabel:range.label, apcNo:null, capacity:null});
+      }
+      return " ";
+    });
+
+    const numRe = /(\d+(?:[.,]\d+)?)\s*([mMgG])?/g;
+    let match;
+    while ((match = numRe.exec(s)) !== null) {
+      const p = parseLegacyExactValue(match[1], match[2], rangeIndex);
+      if (p !== null) cars.push({powerM:p, exact:true, rangeLabel:range.label, apcNo:null, capacity:null});
+    }
+
+    const xCount = (s.match(/\bX\b/gi) || []).length;
+    for (let i=0; i<xCount; i++) {
+      cars.push({powerM:range.estimate, exact:false, rangeLabel:range.label, apcNo:null, capacity:null});
+    }
+    return cars;
+  }
+
+  function parseLegacySheet(values) {
+    const result = [];
+    values.slice(1).forEach(function(row) {
+      const name = String(row[0] || "").trim();
+      if (!name) return;
+
+      const vehicles = [];
+      for (let i=0; i<LEGACY_RANGES.length; i++) {
+        parseLegacyCell(row[i+1], i).forEach(function(v){ vehicles.push(v); });
+      }
+      vehicles.sort(function(a,b){ return b.powerM - a.powerM; });
+
       result.push({
         name:name,
         selected:false,
@@ -187,49 +252,83 @@
     return result;
   }
 
+  function parseSheet(values) {
+    if (!Array.isArray(values) || values.length < 2) {
+      sourceSchema = "unknown";
+      return [];
+    }
+
+    if (isApcSheet(values)) {
+      sourceSchema = "apc";
+      return parseApcSheet(values);
+    }
+
+    sourceSchema = "legacy";
+    return parseLegacySheet(values);
+  }
+
+  function bestVehicle(p) {
+    if (!p.vehicles || !p.vehicles.length) return null;
+    return p.vehicles.slice().sort(function(a,b){ return b.powerM - a.powerM; })[0];
+  }
+
+  function apcLabel(v) {
+    return v && v.apcNo ? "APC " + v.apcNo : "APC";
+  }
+
   score = function(p) { return Number(p.power) || 0; };
 
   renderPlayers = function() {
     const box = document.getElementById("playersList");
     box.innerHTML = "";
+
     players.forEach(function(p,i) {
       const hasData = p.vehicles && p.vehicles.length > 0;
       const row = document.createElement("label");
       row.className = "player-row" + (p.selected ? " selected" : "") + (!hasData ? " no-data" : "");
+
       let meta;
       if (!hasData) {
         meta = txt("Aucune APC renseignée", "No APC data");
       } else {
         const count = p.vehicles.length;
+        const best = bestVehicle(p);
         meta = count + " " + txt(count > 1 ? "APC renseignées" : "APC renseignée", count > 1 ? "APCs listed" : "APC listed") +
-          " · " + txt("Meilleure ", "Best ") + vehicleDisplay(p.vehicles[0]);
+          " · " + txt("Meilleure : ", "Best: ") + apcLabel(best) + " · " + vehicleDisplay(best);
       }
+
       row.innerHTML =
         '<input class="check" type="checkbox" ' + (p.selected ? "checked" : "") + ' data-i="' + i + '">' +
         '<div class="avatar">' + silhouette() + '</div>' +
         '<div><div class="player-name">' + escapeHtml(p.name) + '</div><div class="player-meta">' + escapeHtml(meta) + '</div></div>';
       box.appendChild(row);
     });
+
     box.querySelectorAll(".check").forEach(function(c) {
-      c.onchange = function(e) { players[+e.target.dataset.i].selected=e.target.checked; renderAll(); };
+      c.onchange = function(e) {
+        players[+e.target.dataset.i].selected = e.target.checked;
+        renderAll();
+      };
     });
   };
 
   renderVehicles = function() {
     const all = [];
     sel().forEach(function(p) {
-      (p.vehicles || []).forEach(function(v) { all.push({player:p.name, vehicle:v}); });
+      (p.vehicles || []).forEach(function(v) {
+        all.push({player:p.name, vehicle:v});
+      });
     });
-    all.sort((a,b) => b.vehicle.powerM - a.vehicle.powerM);
+    all.sort(function(a,b){ return b.vehicle.powerM - a.vehicle.powerM; });
 
     const summary = document.getElementById("apcSummary");
     if (summary) {
-      const exact = all.filter(x => x.vehicle.exact).length;
-      const bandOnly = all.length - exact;
+      const selectedPlayers = sel().length;
+      const playersWithData = sel().filter(function(p){ return p.vehicles && p.vehicles.length; }).length;
       summary.innerHTML =
         '<span class="apc-chip"><strong>' + all.length + '</strong> ' + txt("APC disponibles", "APCs available") + '</span>' +
-        '<span class="apc-chip"><strong>' + exact + '</strong> ' + txt("puissances exactes", "exact powers") + '</span>' +
-        '<span class="apc-chip"><strong>' + bandOnly + '</strong> ' + txt("par tranche", "band-only") + '</span>';
+        '<span class="apc-chip"><strong>' + selectedPlayers + '</strong> ' + txt("joueurs présents", "players online") + '</span>' +
+        '<span class="apc-chip"><strong>' + playersWithData + '</strong> ' + txt("avec données APC", "with APC data") + '</span>';
     }
 
     const el = document.getElementById("vehicleList");
@@ -238,15 +337,17 @@
       return;
     }
 
-    const maxPower = Math.max.apply(null, all.map(x => x.vehicle.powerM).concat([1]));
+    const maxPower = Math.max.apply(null, all.map(function(x){ return x.vehicle.powerM; }).concat([1]));
+
     el.innerHTML = all.map(function(x, position) {
-      const v=x.vehicle;
-      const width=Math.max(5,Math.min(100,(v.powerM/maxPower)*100));
+      const v = x.vehicle;
+      const width = Math.max(5, Math.min(100, (v.powerM / maxPower) * 100));
       const precision = v.exact ? txt("Valeur exacte", "Exact value") : txt("Tranche estimée", "Estimated band");
+
       return '<div class="vehicle-card">' +
         '<div class="avatar">' + silhouette() + '</div>' +
-        '<div><div class="vehicle-name">#' + (position+1) + ' · ' + escapeHtml(x.player) + ' — APC</div>' +
-        '<div class="vehicle-range">' + escapeHtml(vehicleDisplay(v)) + ' · ' + escapeHtml(precision) + '</div>' +
+        '<div><div class="vehicle-name">#' + (position+1) + ' · ' + escapeHtml(x.player) + ' — ' + escapeHtml(apcLabel(v)) + '</div>' +
+        '<div class="vehicle-range">' + escapeHtml(vehicleDisplay(v)) + '</div>' +
         '<div class="metric-grid" style="grid-template-columns:1fr">' +
         '<div><div class="metric-label">' + escapeHtml(tr[lang].power) + '</div><div class="bar power"><i style="width:' + width + '%"></i></div></div>' +
         '</div></div>' +
@@ -262,44 +363,51 @@
         apcs.push({player:p.name, vehicle:v});
       });
     });
-    apcs.sort((a,b) => b.vehicle.powerM - a.vehicle.powerM);
+    apcs.sort(function(a,b){ return b.vehicle.powerM - a.vehicle.powerM; });
 
     const wanted = +document.getElementById("leaderCount").value || 0;
     const n = Math.min(wanted, apcs.length);
     const arr = apcs.slice(0,n);
 
-    document.getElementById("resultCount").textContent=n;
-    const list=document.getElementById("resultsList");
+    document.getElementById("resultCount").textContent = n;
+    const list = document.getElementById("resultsList");
 
     if (!arr.length) {
-      list.innerHTML='<div class="empty-state">' + txt("Aucune APC disponible parmi les joueurs sélectionnés.", "No APC available among selected players.") + '</div>';
+      list.innerHTML = '<div class="empty-state">' + txt("Aucune APC disponible parmi les joueurs sélectionnés.", "No APC available among selected players.") + '</div>';
     } else {
-      list.innerHTML=arr.map(function(x,i) {
-        const v=x.vehicle;
-        const precision=v.exact ? txt("puissance exacte", "exact power") : txt("classement estimé par tranche", "estimated by power band");
+      list.innerHTML = arr.map(function(x,i) {
+        const v = x.vehicle;
         return '<div class="result-card">' +
           '<div class="rank">' + (i+1) + '</div>' +
           '<div class="avatar">' + silhouette() + '</div>' +
-          '<div><div class="result-name">' + escapeHtml(x.player) + '</div><div class="vehicle-sub">APC · ' + escapeHtml(precision) + '</div></div>' +
-          '<div class="result-right"><strong>' + escapeHtml(vehicleDisplay(v)) + '</strong><span>' + txt("START RALLY", "START RALLY") + '</span></div>' +
+          '<div><div class="result-name">' + escapeHtml(x.player) + '</div><div class="vehicle-sub">' + escapeHtml(apcLabel(v)) + '</div></div>' +
+          '<div class="result-right"><strong>' + escapeHtml(vehicleDisplay(v)) + '</strong><span>START RALLY</span></div>' +
         '</div>';
       }).join("");
     }
 
-    let note=document.getElementById("capacityPending");
+    let note = document.getElementById("capacityPending");
     if (!note) {
-      const tip=document.querySelector("#results .tip");
+      const tip = document.querySelector("#results .tip");
       if (tip) {
-        note=document.createElement("div");
-        note.id="capacityPending";
-        note.className="pending-capacity";
-        tip.parentNode.insertBefore(note,tip);
+        note = document.createElement("div");
+        note.id = "capacityPending";
+        note.className = "pending-capacity";
+        tip.parentNode.insertBefore(note, tip);
       }
     }
-    if (note) note.textContent=txt(
-      "V1 : chaque APC est classée individuellement par puissance. Une même personne peut donc apparaître plusieurs fois si elle possède plusieurs APC parmi les plus fortes. Les numéros APC 1/2/3/4 seront ajoutés quand le tableau V2 les identifiera.",
-      "V1: every APC is ranked independently by power. The same player can therefore appear more than once if several of their APCs are among the strongest. APC 1/2/3/4 labels will be added when the V2 sheet identifies them."
-    );
+
+    if (note) {
+      note.textContent = sourceSchema === "apc"
+        ? txt(
+            "V1.9 : les APC 1, 2, 3 et 4 viennent directement de Feuille 3. Le classement est basé sur leur puissance exacte. La taille des rallys sera ajoutée plus tard.",
+            "V1.9: APC 1, 2, 3 and 4 come directly from Sheet 3. Ranking uses their exact power. Rally size will be added later."
+          )
+        : txt(
+            "Source provisoire : l’ancien format du Sheet est encore utilisé. Passe l’Apps Script sur Feuille 3 pour afficher les numéros APC exacts.",
+            "Temporary source: the old Sheet format is still in use. Switch Apps Script to Sheet 3 to display exact APC numbers."
+          );
+    }
   };
 
   renderAll = function() {
@@ -307,13 +415,15 @@
     renderPlayers();
     renderVehicles();
     renderResults();
-    document.getElementById("onlineCount").textContent=sel().length;
+    document.getElementById("onlineCount").textContent = sel().length;
     updateSyncStrip();
   };
 
   function selectedNames() {
     const map = {};
-    players.forEach(function(p) { if (p.selected) map[p.name] = true; });
+    players.forEach(function(p) {
+      if (p.selected) map[p.name] = true;
+    });
     return map;
   }
 
@@ -321,8 +431,10 @@
     const keep = preserveCurrentSelection ? selectedNames() : {};
     const parsed = parseSheet(values);
     parsed.forEach(function(p) { p.selected = !!keep[p.name]; });
+
     players.splice(0, players.length);
     parsed.forEach(function(p) { players.push(p); });
+
     lastSync = updatedAt || new Date().toISOString();
     renderAll();
   }
@@ -331,9 +443,11 @@
     try {
       const raw = localStorage.getItem(CACHE_KEY);
       if (!raw) return false;
+
       const cached = JSON.parse(raw);
       if (!cached || !Array.isArray(cached.values) || !cached.savedAt) return false;
       if ((Date.now() - cached.savedAt) > CACHE_MAX_AGE) return false;
+
       applyValues(cached.values, cached.updatedAt || cached.savedAt, false);
       syncState = "cached";
       updateSyncStrip();
@@ -357,32 +471,34 @@
     syncState = hasCache ? "cached" : "loading";
     updateSyncStrip();
 
-    const callbackName="__frankySheetDataLoaded";
-    const old=document.getElementById("frankyDataScript");
+    const callbackName = "__frankySheetDataLoaded";
+    const old = document.getElementById("frankyDataScript");
     if (old) old.remove();
 
-    window[callbackName]=function(payload) {
+    window[callbackName] = function(payload) {
       try {
-        if (!payload || payload.ok !== true || !Array.isArray(payload.values)) throw new Error("Bad payload");
+        if (!payload || payload.ok !== true || !Array.isArray(payload.values)) {
+          throw new Error("Bad payload");
+        }
+
         saveCache(payload);
         applyValues(payload.values, payload.updatedAt, true);
-        syncState="ok";
+        syncState = "ok";
         updateSyncStrip();
       } catch (err) {
-        syncState=hasCache ? "error" : "error";
+        syncState = "error";
         updateSyncStrip();
       } finally {
         try { delete window[callbackName]; } catch (_) {}
       }
     };
 
-    const script=document.createElement("script");
-    script.id="frankyDataScript";
-    // 30-second URL bucket: repeated openings can reuse a recent response instead of forcing a brand-new request.
-    const bucket=Math.floor(Date.now()/30000);
-    script.src=API_URL + "?action=data&callback=" + encodeURIComponent(callbackName) + "&v=" + bucket;
-    script.onerror=function(){
-      syncState="error";
+    const script = document.createElement("script");
+    script.id = "frankyDataScript";
+    const bucket = Math.floor(Date.now() / 30000);
+    script.src = API_URL + "?action=data&callback=" + encodeURIComponent(callbackName) + "&v=" + bucket;
+    script.onerror = function() {
+      syncState = "error";
       updateSyncStrip();
     };
     document.head.appendChild(script);
@@ -392,7 +508,8 @@
   ensureRallySelectorOnTop();
   addSyncStrip();
   checkForAppUpdate();
-  players.splice(0,players.length);
+
+  players.splice(0, players.length);
   renderAll();
 
   const hasCache = loadCachedData();
