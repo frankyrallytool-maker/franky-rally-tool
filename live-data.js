@@ -1,6 +1,6 @@
 (function () {
   const API_URL = "https://script.google.com/macros/s/AKfycbxuxysWcVsk_Y6eARCGne_iH-hGUOSkAa2bkTuDLGXU9jgJ1sJPgz58Q41Cf0UcVo8svA/exec";
-  const APP_BUILD = "1.9.0";
+  const APP_BUILD = "1.10.0";
   const CACHE_KEY = "franky_sheet_cache_v2";
   const CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
@@ -20,6 +20,7 @@
   let syncState = "loading";
   let lastSync = null;
   let sourceSchema = "unknown";
+  let playerFilterQuery = "";
 
   function txt(fr, en) { return lang === "fr" ? fr : en; }
 
@@ -47,7 +48,14 @@
       ".apc-chip strong{color:#d8ecff;font-size:10px}",
       ".rally-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 9px;padding:9px 11px;border:1px solid #285278;border-radius:10px;background:linear-gradient(180deg,rgba(16,45,72,.78),rgba(9,27,44,.78))}",
       ".rally-top label{font-size:11px;color:#c5e8ff;font-weight:900}",
-      ".rally-top select{min-width:82px;font-size:13px;font-weight:950;border-color:#3474a9;background:#0d2135}"
+      ".rally-top select{min-width:82px;font-size:13px;font-weight:950;border-color:#3474a9;background:#0d2135}",
+      ".player-filter{position:relative;margin:0 0 9px}",
+      ".player-filter input{width:100%;height:40px;padding:8px 42px 8px 12px;border-radius:10px;border:1px solid #26445f;background:#091522;color:#eef7ff;outline:none;font-size:12px;font-weight:700}",
+      ".player-filter input::placeholder{color:#688099;font-weight:700}",
+      ".player-filter input:focus{border-color:#278ee6;box-shadow:0 0 0 2px rgba(39,142,230,.12)}",
+      ".player-filter button{display:none;position:absolute;right:5px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:0;border-radius:8px;background:#14273b;color:#b8cce0;font-size:20px;line-height:1;padding:0}",
+      ".player-filter button.visible{display:grid;place-items:center}",
+      ".player-filter button:hover{background:#1a3855;color:#fff}"
     ].join("");
     document.head.appendChild(style);
   }
@@ -118,6 +126,49 @@
       const source = sourceSchema === "apc" ? " · Feuille 3" : "";
       label.textContent = txt("Données Google Sheet à jour", "Google Sheet data up to date") + source + (time ? " · " + time : "");
     }
+  }
+
+  function normalizePlayerText(value) {
+    let s = String(value == null ? "" : value).toLowerCase();
+    try {
+      s = s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    } catch (_) {}
+    return s;
+  }
+
+  function updatePlayerFilterUI() {
+    const input = document.getElementById("playerFilterInput");
+    const clear = document.getElementById("playerFilterClear");
+    if (!input || !clear) return;
+
+    input.placeholder = txt("Rechercher un joueur…", "Search a player…");
+    clear.setAttribute("aria-label", txt("Effacer la recherche", "Clear search"));
+    clear.title = txt("Effacer la recherche", "Clear search");
+    clear.classList.toggle("visible", !!playerFilterQuery);
+  }
+
+  function setupPlayerFilter() {
+    const input = document.getElementById("playerFilterInput");
+    const clear = document.getElementById("playerFilterClear");
+    if (!input || !clear || input.dataset.ready === "1") return;
+
+    input.dataset.ready = "1";
+    input.value = playerFilterQuery;
+    updatePlayerFilterUI();
+
+    input.addEventListener("input", function() {
+      playerFilterQuery = input.value || "";
+      updatePlayerFilterUI();
+      renderPlayers();
+    });
+
+    clear.addEventListener("click", function() {
+      playerFilterQuery = "";
+      input.value = "";
+      updatePlayerFilterUI();
+      renderPlayers();
+      input.focus();
+    });
   }
 
   function parseSimplePower(raw) {
@@ -282,7 +333,13 @@
     const box = document.getElementById("playersList");
     box.innerHTML = "";
 
+    const q = normalizePlayerText(playerFilterQuery.trim());
+    let visibleCount = 0;
+
     players.forEach(function(p,i) {
+      if (q && normalizePlayerText(p.name).indexOf(q) === -1) return;
+
+      visibleCount++;
       const hasData = p.vehicles && p.vehicles.length > 0;
       const row = document.createElement("label");
       row.className = "player-row" + (p.selected ? " selected" : "") + (!hasData ? " no-data" : "");
@@ -304,12 +361,18 @@
       box.appendChild(row);
     });
 
+    if (!visibleCount && q) {
+      box.innerHTML = '<div class="empty-state">' + txt("Aucun joueur trouvé.", "No player found.") + '</div>';
+    }
+
     box.querySelectorAll(".check").forEach(function(c) {
       c.onchange = function(e) {
         players[+e.target.dataset.i].selected = e.target.checked;
         renderAll();
       };
     });
+
+    updatePlayerFilterUI();
   };
 
   renderVehicles = function() {
@@ -506,6 +569,7 @@
 
   addLiveStyles();
   ensureRallySelectorOnTop();
+  setupPlayerFilter();
   addSyncStrip();
   checkForAppUpdate();
 
