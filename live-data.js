@@ -1,6 +1,6 @@
 (function () {
   const API_URL = "https://script.google.com/macros/s/AKfycbxuxysWcVsk_Y6eARCGne_iH-hGUOSkAa2bkTuDLGXU9jgJ1sJPgz58Q41Cf0UcVo8svA/exec";
-  const APP_BUILD = "1.10.1";
+  const APP_BUILD = "1.10.2";
   const CACHE_KEY = "franky_sheet_cache_v2";
   const CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
@@ -50,7 +50,7 @@
       ".rally-top label{font-size:11px;color:#c5e8ff;font-weight:900}",
       ".rally-top select{min-width:82px;font-size:13px;font-weight:950;border-color:#3474a9;background:#0d2135}",
       ".player-filter{position:relative;margin:0 0 9px}",
-      ".player-filter input{width:100%;height:40px;padding:8px 42px 8px 12px;border-radius:10px;border:1px solid #26445f;background:#091522;color:#eef7ff;outline:none;font-size:12px;font-weight:700}",
+      ".player-filter input{width:100%;height:42px;padding:8px 42px 8px 12px;border-radius:10px;border:1px solid #26445f;background:#091522;color:#eef7ff;outline:none;font-size:16px;font-weight:700}",
       ".player-filter input::placeholder{color:#688099;font-weight:700}",
       ".player-filter input:focus{border-color:#278ee6;box-shadow:0 0 0 2px rgba(39,142,230,.12)}",
       ".player-filter button{display:none;position:absolute;right:5px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:0;border-radius:8px;background:#14273b;color:#b8cce0;font-size:20px;line-height:1;padding:0}",
