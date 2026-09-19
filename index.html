@@ -68,8 +68,8 @@ button{cursor:pointer}
 .brand-title .accent{color:var(--cyan)}
 .brand-sub{font-size:9px;color:#7188a2;margin-top:3px}
 .header-actions{display:flex;align-items:center;gap:8px}
-.lang{display:flex;align-items:center;gap:2px;color:#7890aa;font-size:11px;font-weight:900}
-.lang button{border:0;background:transparent;color:#7890aa;padding:6px 5px;font-weight:950;border-bottom:2px solid transparent}
+.lang{display:flex;align-items:center;gap:1px;color:#7890aa;font-size:10px;font-weight:900;white-space:nowrap}
+.lang button{border:0;background:transparent;color:#7890aa;padding:6px 3px;font-weight:950;border-bottom:2px solid transparent}
 .lang button.active{color:var(--cyan);border-color:var(--cyan)}
 .menu{border:0;background:transparent;color:#a9b9cc;font-size:20px;padding:6px}
 
@@ -256,7 +256,7 @@ select{
 <link rel="apple-touch-icon" href="https://frankyrallytool-maker.github.io/franky-rally-tool/franky-icon-180.png?v=2">
 <link rel="apple-touch-icon-precomposed" href="https://frankyrallytool-maker.github.io/franky-rally-tool/franky-icon-180.png?v=2">
 <link rel="icon" type="image/png" sizes="192x192" href="https://frankyrallytool-maker.github.io/franky-rally-tool/franky-icon-192.png?v=2">
-<link rel="manifest" href="./manifest.webmanifest?v=17">
+<link rel="manifest" href="./manifest.webmanifest?v=18">
 
 </head>
 <body>
@@ -277,7 +277,7 @@ select{
       </div>
       <div class="header-actions">
         <div class="lang">
-          <button id="enBtn" class="active">EN</button><span>|</span><button id="frBtn">FR</button>
+          <button id="enBtn" class="active">EN</button><span>|</span><button id="frBtn">FR</button><span>|</span><button id="itBtn">IT</button><span>|</span><button id="deBtn">DE</button>
         </div>
         <button class="menu" aria-label="Menu">☰</button>
       </div>
@@ -370,7 +370,7 @@ select{
           </div>
         </div>
 
-        <div class="footer">FRANKY RALLY TOOL · V1.10.12 · DECIMAL INPUT</div>
+        <div class="footer">FRANKY RALLY TOOL · V1.10.13 · EN FR IT DE</div>
       </section>
     </div>
   </div>
@@ -402,6 +402,20 @@ attendanceTab:"Présences",vehiclesTab:"Véhicules",resultsTab:"Résultats",atte
 online:"Joueurs présents",leaders:"Nombre de rallys",calculate:"Construire le plan",vehiclesTitle:"APC disponibles",vehiclesSub:"Toutes les APC des joueurs présents, classées individuellement par puissance.",
 resultsTitle:"Résultats",recommended:"APC recommandées pour lancer",resultsSub:"Les APC les plus puissantes sont sélectionnées individuellement parmi tous les joueurs présents.",
 tip:"Les autres APC restent disponibles pour rejoindre les rallys ouverts.",back:"Retour aux présences",present:"Présent",absent:"Absent",power:"Puissance",capacity:"Capacité Rally",cap:"capacité"
+},
+it:{
+brandSub:"Compagno per Dark War Survival",bannerText:"ALCUNI COMBATTONO\nPER FARCI SOPRAVVIVERE",desktopTitle:"Pianificatore Rally Franky",desktopText:"Seleziona chi è online, scegli quanti rally avviare e classifica ogni APC disponibile individualmente per potenza.",
+attendanceTab:"Presenze",vehiclesTab:"APC",resultsTab:"Risultati",attendanceTitle:"Franky — Presenze",attendanceSub:"Seleziona i giocatori attualmente online.",
+online:"Giocatori online",leaders:"Numero di rally",calculate:"Crea piano rally",vehiclesTitle:"APC disponibili",vehiclesSub:"Tutte le APC dei giocatori selezionati, classificate individualmente per potenza.",
+resultsTitle:"Risultati",recommended:"APC consigliate per avviare",resultsSub:"Le APC individuali più potenti vengono selezionate tra tutti i giocatori online.",
+tip:"Le APC rimanenti restano disponibili per unirsi ai rally aperti.",back:"Torna alle presenze",present:"Online",absent:"Offline",power:"Potenza",capacity:"Capacità Rally",cap:"capacità"
+},
+de:{
+brandSub:"Begleiter für Dark War Survival",bannerText:"EINIGE KÄMPFEN\nDAMIT WIR ÜBERLEBEN",desktopTitle:"Franky Rally-Planer",desktopText:"Wähle die Spieler aus, die online sind, bestimme die Anzahl der Rallys und sortiere jede verfügbare APC einzeln nach Stärke.",
+attendanceTab:"Anwesenheit",vehiclesTab:"APCs",resultsTab:"Ergebnisse",attendanceTitle:"Franky — Anwesenheit",attendanceSub:"Wähle die Spieler aus, die aktuell online sind.",
+online:"Spieler online",leaders:"Anzahl der Rallys",calculate:"Rally-Plan erstellen",vehiclesTitle:"Verfügbare APCs",vehiclesSub:"Alle APCs der ausgewählten Spieler, einzeln nach Stärke sortiert.",
+resultsTitle:"Ergebnisse",recommended:"Empfohlene Starter-APCs",resultsSub:"Die stärksten einzelnen APCs werden aus allen aktuell online befindlichen Spielern ausgewählt.",
+tip:"Die übrigen APCs bleiben verfügbar, um offenen Rallys beizutreten.",back:"Zurück zur Anwesenheit",present:"Online",absent:"Offline",power:"Stärke",capacity:"Rally-Kapazität",cap:"Kapazität"
 }
 };
 let lang="en";
@@ -456,9 +470,12 @@ function renderResults(){
  </div>`).join("");
 }
 function applyLang(){
+ document.documentElement.lang=lang;
  document.querySelectorAll("[data-i18n]").forEach(el=>{const k=el.dataset.i18n;if(tr[lang][k]!==undefined)el.innerHTML=tr[lang][k].replace("\n","<br>")});
- document.getElementById("enBtn").classList.toggle("active",lang==="en");
- document.getElementById("frBtn").classList.toggle("active",lang==="fr");
+ ["en","fr","it","de"].forEach(code=>{
+   const btn=document.getElementById(code+"Btn");
+   if(btn)btn.classList.toggle("active",lang===code);
+ });
 }
 function renderAll(){
  applyLang();renderPlayers();renderVehicles();renderResults();document.getElementById("onlineCount").textContent=sel().length;
@@ -473,8 +490,10 @@ document.getElementById("backBtn").onclick=()=>openTab("attendance");
 document.getElementById("leaderCount").onchange=renderAll;
 document.getElementById("enBtn").onclick=()=>{lang="en";renderAll()};
 document.getElementById("frBtn").onclick=()=>{lang="fr";renderAll()};
+document.getElementById("itBtn").onclick=()=>{lang="it";renderAll()};
+document.getElementById("deBtn").onclick=()=>{lang="de";renderAll()};
 renderAll();
 </script>
-<script src="./live-data.js?v=18"></script>
+<script src="./live-data.js?v=19"></script>
 </body>
 </html>
