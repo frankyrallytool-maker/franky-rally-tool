@@ -1,6 +1,6 @@
 (function () {
   const API_URL = "https://script.google.com/macros/s/AKfycbxuxysWcVsk_Y6eARCGne_iH-hGUOSkAa2bkTuDLGXU9jgJ1sJPgz58Q41Cf0UcVo8svA/exec";
-  const APP_BUILD = "1.10.15";
+  const APP_BUILD = "1.10.16";
   const CACHE_KEY = "franky_sheet_cache_v2";
   const CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
@@ -63,6 +63,8 @@
       ".player-filter-results .player-row{margin:0}",
       ".result-card{grid-template-columns:auto auto minmax(0,1fr) auto;align-items:center}",
       ".result-main{min-width:0}",
+      ".result-rally-size{margin-top:4px;font-size:9px;color:#7f96ad;font-weight:800;white-space:nowrap}",
+      ".result-rally-size strong{color:#e7f4ff;font-size:10px;font-weight:950;margin-left:4px}",
       ".result-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}",
       ".result-right{text-align:right}",
       ".result-right span{font-weight:950;letter-spacing:.03em}"
@@ -323,6 +325,59 @@
     return v.rangeLabel || formatPowerM(v.powerM);
   }
 
+  function parseRallySize(raw) {
+    let s = String(raw == null ? "" : raw).trim();
+    if (!s) return null;
+
+    s = s.replace(/[\s\u00A0\u202F]/g, "").toLowerCase();
+
+    let multiplier = 1;
+    if (/k$/.test(s)) {
+      multiplier = 1000;
+      s = s.slice(0, -1);
+    } else if (/m$/.test(s)) {
+      multiplier = 1000000;
+      s = s.slice(0, -1);
+    }
+
+    // For rally sizes, a single separator followed by exactly 3 digits is
+    // normally a thousands separator (66,400 / 66.400).
+    if (/^\d+[,.]\d{3}$/.test(s)) {
+      s = s.replace(/[,.]/g, "");
+    } else {
+      const lastComma = s.lastIndexOf(",");
+      const lastDot = s.lastIndexOf(".");
+
+      if (lastComma !== -1 && lastDot !== -1) {
+        if (lastComma > lastDot) {
+          s = s.replace(/\./g, "").replace(/,/g, ".");
+        } else {
+          s = s.replace(/,/g, "");
+        }
+      } else if (lastComma !== -1) {
+        s = s.replace(/,/g, ".");
+      }
+    }
+
+    if (!/^(?:\d+(?:\.\d+)?|\.\d+)$/.test(s)) return null;
+
+    const n = parseFloat(s) * multiplier;
+    return Number.isFinite(n) && n > 0 ? n : null;
+  }
+
+  function formatRallySize(value) {
+    if (!Number.isFinite(value) || value <= 0) return "—";
+    if (value >= 1000000) {
+      const m = Math.round((value / 1000000) * 10) / 10;
+      return String(m).replace(/\.0$/, "") + "M";
+    }
+    if (value >= 1000) {
+      const k = Math.round((value / 1000) * 10) / 10;
+      return String(k).replace(/\.0$/, "") + "K";
+    }
+    return String(Math.round(value));
+  }
+
   function isApcSheet(values) {
     if (!Array.isArray(values) || !values.length || !Array.isArray(values[0])) return false;
     const h = values[0].map(function(v){ return String(v || "").toLowerCase().trim(); });
@@ -340,7 +395,9 @@
       const name = String(row[0] || "").trim();
       if (!name) return;
 
+      const rallySize = parseRallySize(row[5]);
       const vehicles = [];
+
       for (let col = 1; col <= 4; col++) {
         const power = parseSimplePower(row[col]);
         if (power === null) continue;
@@ -348,7 +405,7 @@
           apcNo: col,
           powerM: power,
           exact: true,
-          capacity: null
+          capacity: rallySize
         });
       }
 
@@ -361,7 +418,7 @@
         selected: false,
         vehicles: vehicles,
         power: bestPower,
-        capacity: null
+        capacity: rallySize
       });
     });
     return result;
@@ -552,7 +609,7 @@
         return '<div class="result-card">' +
           '<div class="rank">' + (i+1) + '</div>' +
           '<div class="avatar">' + silhouette() + '</div>' +
-          '<div class="result-main"><div class="result-name">' + escapeHtml(x.player) + '</div><div class="vehicle-sub">' + escapeHtml(apcLabel(v)) + '</div></div>' +
+          '<div class="result-main"><div class="result-name">' + escapeHtml(x.player) + '</div><div class="vehicle-sub">' + escapeHtml(apcLabel(v)) + '</div><div class="result-rally-size">RALLY SIZE <strong>' + escapeHtml(formatRallySize(v.capacity)) + '</strong></div></div>' +
           '<div class="result-right"><strong>' + escapeHtml(vehicleDisplay(v)) + '</strong><span>START RALLY</span></div>' +
         '</div>';
       }).join("");
@@ -572,10 +629,10 @@
     if (note) {
       note.textContent = sourceSchema === "apc"
         ? txt(
-            "Les APC 1, 2, 3 et 4 viennent directement de Feuille 3. Le classement est basé sur leur puissance exacte. La taille des rallys sera ajoutée plus tard.",
-            "APC 1, 2, 3 and 4 come directly from Sheet 3. Ranking uses their exact power. Rally size will be added later.",
-            "Le APC 1, 2, 3 e 4 provengono direttamente dal foglio dati. La classifica usa la loro potenza esatta. La dimensione dei rally sarà aggiunta in seguito.",
-            "APC 1, 2, 3 und 4 stammen direkt aus dem Datenblatt. Die Rangliste verwendet ihre exakte Stärke. Die Rally-Größe wird später ergänzt."
+            "Les APC et la RALLY SIZE viennent directement de la feuille de données. Le classement reste basé sur la puissance exacte des APC.",
+            "APCs and RALLY SIZE come directly from the data sheet. Ranking is still based on exact APC power.",
+            "Le APC e la RALLY SIZE provengono direttamente dal foglio dati. La classifica resta basata sulla potenza esatta delle APC.",
+            "APCs und RALLY SIZE stammen direkt aus dem Datenblatt. Die Rangliste basiert weiterhin auf der exakten APC-Stärke."
           )
         : txt(
             "Source provisoire : l’ancien format du Sheet est encore utilisé. Passe l’Apps Script sur Feuille 3 pour afficher les numéros APC exacts.",
