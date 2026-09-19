@@ -1,7 +1,7 @@
 (function () {
   const API_URL = "https://script.google.com/macros/s/AKfycbxuxysWcVsk_Y6eARCGne_iH-hGUOSkAa2bkTuDLGXU9jgJ1sJPgz58Q41Cf0UcVo8svA/exec";
-  const APP_BUILD = "1.10.16";
-  const CACHE_KEY = "franky_sheet_cache_v2";
+  const APP_BUILD = "1.10.17";
+  const CACHE_KEY = "franky_sheet_cache_v3";
   const CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
   const LEGACY_RANGES = [
@@ -63,8 +63,8 @@
       ".player-filter-results .player-row{margin:0}",
       ".result-card{grid-template-columns:auto auto minmax(0,1fr) auto;align-items:center}",
       ".result-main{min-width:0}",
-      ".result-rally-size{margin-top:4px;font-size:9px;color:#7f96ad;font-weight:800;white-space:nowrap}",
-      ".result-rally-size strong{color:#e7f4ff;font-size:10px;font-weight:950;margin-left:4px}",
+      ".result-rally-size{margin-top:4px;font-size:9px;color:#9ab0c7;font-weight:900;white-space:nowrap;letter-spacing:.03em}",
+      ".result-rally-size strong{color:#64d0ff;font-size:10px;font-weight:950;margin-left:4px}",
       ".result-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}",
       ".result-right{text-align:right}",
       ".result-right span{font-weight:950;letter-spacing:.03em}"
