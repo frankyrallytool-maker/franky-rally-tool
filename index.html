@@ -203,6 +203,7 @@ select{
   margin-top:9px;padding:10px;border-radius:10px;background:rgba(42,190,108,.13);
   border:1px solid rgba(53,215,133,.28);font-size:9px;line-height:1.45;color:#b6e9cd
 }
+.generate-image{margin-top:9px}
 .secondary{
   width:100%;margin-top:9px;border-radius:10px;padding:10px;border:1px solid #28455f;
   background:#0c1724;color:#d9e4f0;font-weight:900
@@ -256,7 +257,7 @@ select{
 <link rel="apple-touch-icon" href="https://frankyrallytool-maker.github.io/franky-rally-tool/franky-icon-180.png?v=2">
 <link rel="apple-touch-icon-precomposed" href="https://frankyrallytool-maker.github.io/franky-rally-tool/franky-icon-180.png?v=2">
 <link rel="icon" type="image/png" sizes="192x192" href="https://frankyrallytool-maker.github.io/franky-rally-tool/franky-icon-192.png?v=2">
-<link rel="manifest" href="./manifest.webmanifest?v=23">
+<link rel="manifest" href="./manifest.webmanifest?v=24">
 
 </head>
 <body>
@@ -366,11 +367,12 @@ select{
             <div class="panel-sub" data-i18n="resultsSub">The best leaders are selected using vehicle power and rally capacity.</div>
             <div class="results-list" id="resultsList"></div>
             <div class="tip">💡 <span data-i18n="tip">All other vehicles join open rallies to help fill them.</span></div>
+            <button class="primary generate-image" id="generateImageBtn" data-i18n="generateImage">Generate image</button>
             <button class="secondary" id="backBtn" data-i18n="back">Back to attendance</button>
           </div>
         </div>
 
-        <div class="footer">FRANKY RALLY TOOL · V1.10.18 · RALLY SIZE PLUS</div>
+        <div class="footer">FRANKY RALLY TOOL · V1.11.0 · IMAGE GENERATOR</div>
       </section>
     </div>
   </div>
@@ -394,28 +396,28 @@ brandSub:"Dark War Survival companion",bannerText:"SOME FIGHT\nSO WE SURVIVE",de
 attendanceTab:"Attendance",vehiclesTab:"Vehicles",resultsTab:"Results",attendanceTitle:"Franky — Attendance",attendanceSub:"Select the players currently online for the calculation.",
 online:"Players online",leaders:"Number of rallies",calculate:"Build rally plan",vehiclesTitle:"Available APCs",vehiclesSub:"All APCs from selected players, ranked individually by power.",
 resultsTitle:"Results",recommended:"Recommended starter APCs",resultsSub:"The strongest individual APCs are selected from all players currently online.",
-tip:"The remaining APCs stay available to join the open rallies.",back:"Back to attendance",present:"Online",absent:"Offline",power:"Power",capacity:"Rally Capacity",cap:"capacity"
+tip:"The remaining APCs stay available to join the open rallies.",back:"Back to attendance",present:"Online",absent:"Offline",power:"Power",capacity:"Rally Capacity",cap:"capacity",generateImage:"Generate image"
 },
 fr:{
 brandSub:"Compagnon Dark War Survival",bannerText:"CERTAINS COMBATTENT\nPOUR NOUS FAIRE SURVIVRE",desktopTitle:"Planificateur Franky",desktopText:"Sélectionnez les présents, choisissez le nombre de rallys à lancer et classez chaque APC disponible individuellement par puissance.",
 attendanceTab:"Présences",vehiclesTab:"Véhicules",resultsTab:"Résultats",attendanceTitle:"Franky — Présences",attendanceSub:"Sélectionnez les joueurs actuellement présents.",
 online:"Joueurs présents",leaders:"Nombre de rallys",calculate:"Construire le plan",vehiclesTitle:"APC disponibles",vehiclesSub:"Toutes les APC des joueurs présents, classées individuellement par puissance.",
 resultsTitle:"Résultats",recommended:"APC recommandées pour lancer",resultsSub:"Les APC les plus puissantes sont sélectionnées individuellement parmi tous les joueurs présents.",
-tip:"Les autres APC restent disponibles pour rejoindre les rallys ouverts.",back:"Retour aux présences",present:"Présent",absent:"Absent",power:"Puissance",capacity:"Capacité Rally",cap:"capacité"
+tip:"Les autres APC restent disponibles pour rejoindre les rallys ouverts.",back:"Retour aux présences",present:"Présent",absent:"Absent",power:"Puissance",capacity:"Capacité Rally",cap:"capacité",generateImage:"Générer l’image"
 },
 it:{
 brandSub:"Compagno per Dark War Survival",bannerText:"ALCUNI COMBATTONO\nPER FARCI SOPRAVVIVERE",desktopTitle:"Pianificatore Rally Franky",desktopText:"Seleziona chi è online, scegli quanti rally avviare e classifica ogni APC disponibile individualmente per potenza.",
 attendanceTab:"Presenze",vehiclesTab:"APC",resultsTab:"Risultati",attendanceTitle:"Franky — Presenze",attendanceSub:"Seleziona i giocatori attualmente online.",
 online:"Giocatori online",leaders:"Numero di rally",calculate:"Crea piano rally",vehiclesTitle:"APC disponibili",vehiclesSub:"Tutte le APC dei giocatori selezionati, classificate individualmente per potenza.",
 resultsTitle:"Risultati",recommended:"APC consigliate per avviare",resultsSub:"Le APC individuali più potenti vengono selezionate tra tutti i giocatori online.",
-tip:"Le APC rimanenti restano disponibili per unirsi ai rally aperti.",back:"Torna alle presenze",present:"Online",absent:"Offline",power:"Potenza",capacity:"Capacità Rally",cap:"capacità"
+tip:"Le APC rimanenti restano disponibili per unirsi ai rally aperti.",back:"Torna alle presenze",present:"Online",absent:"Offline",power:"Potenza",capacity:"Capacità Rally",cap:"capacità",generateImage:"Genera immagine"
 },
 de:{
 brandSub:"Begleiter für Dark War Survival",bannerText:"EINIGE KÄMPFEN\nDAMIT WIR ÜBERLEBEN",desktopTitle:"Franky Rally-Planer",desktopText:"Wähle die Spieler aus, die online sind, bestimme die Anzahl der Rallys und sortiere jede verfügbare APC einzeln nach Stärke.",
 attendanceTab:"Anwesenheit",vehiclesTab:"APCs",resultsTab:"Ergebnisse",attendanceTitle:"Franky — Anwesenheit",attendanceSub:"Wähle die Spieler aus, die aktuell online sind.",
 online:"Spieler online",leaders:"Anzahl der Rallys",calculate:"Rally-Plan erstellen",vehiclesTitle:"Verfügbare APCs",vehiclesSub:"Alle APCs der ausgewählten Spieler, einzeln nach Stärke sortiert.",
 resultsTitle:"Ergebnisse",recommended:"Empfohlene Starter-APCs",resultsSub:"Die stärksten einzelnen APCs werden aus allen aktuell online befindlichen Spielern ausgewählt.",
-tip:"Die übrigen APCs bleiben verfügbar, um offenen Rallys beizutreten.",back:"Zurück zur Anwesenheit",present:"Online",absent:"Offline",power:"Stärke",capacity:"Rally-Kapazität",cap:"Kapazität"
+tip:"Die übrigen APCs bleiben verfügbar, um offenen Rallys beizutreten.",back:"Zurück zur Anwesenheit",present:"Online",absent:"Offline",power:"Stärke",capacity:"Rally-Kapazität",cap:"Kapazität",generateImage:"Bild erstellen"
 }
 };
 let lang="en";
@@ -494,6 +496,6 @@ document.getElementById("itBtn").onclick=()=>{lang="it";renderAll()};
 document.getElementById("deBtn").onclick=()=>{lang="de";renderAll()};
 renderAll();
 </script>
-<script src="./live-data.js?v=24"></script>
+<script src="./live-data.js?v=25"></script>
 </body>
 </html>
