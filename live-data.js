@@ -1,6 +1,6 @@
 (function () {
   const API_URL = "https://script.google.com/macros/s/AKfycbxuxysWcVsk_Y6eARCGne_iH-hGUOSkAa2bkTuDLGXU9jgJ1sJPgz58Q41Cf0UcVo8svA/exec";
-  const APP_BUILD = "1.10.12";
+  const APP_BUILD = "1.10.13";
   const CACHE_KEY = "franky_sheet_cache_v2";
   const CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
@@ -22,7 +22,7 @@
   let sourceSchema = "unknown";
   let playerFilterQuery = "";
 
-  function txt(fr, en) { return lang === "fr" ? fr : en; }
+  function txt(fr, en, it, de) { if (lang === "fr") return fr; if (lang === "it") return it || en; if (lang === "de") return de || en; return en; }
 
   function escapeHtml(value) {
     return String(value == null ? "" : value)
@@ -124,15 +124,15 @@
     strip.className = "sync-strip " + (syncState === "ok" ? "ok" : syncState === "error" ? "error" : "");
 
     if (syncState === "loading") {
-      label.textContent = txt("Chargement du Google Sheet…", "Loading Google Sheet…");
+      label.textContent = txt("Chargement du Google Sheet…", "Loading Google Sheet…", "Caricamento del Google Sheet…", "Google Sheet wird geladen…");
     } else if (syncState === "cached") {
-      label.textContent = txt("Données instantanées affichées · mise à jour en cours…", "Instant cached data shown · refreshing…");
+      label.textContent = txt("Données instantanées affichées · mise à jour en cours…", "Instant cached data shown · refreshing…", "Dati salvati mostrati · aggiornamento in corso…", "Gespeicherte Daten angezeigt · Aktualisierung läuft…");
     } else if (syncState === "error") {
-      label.textContent = txt("Données enregistrées utilisées · mise à jour impossible.", "Using saved data · live refresh unavailable.");
+      label.textContent = txt("Données enregistrées utilisées · mise à jour impossible.", "Using saved data · live refresh unavailable.", "Uso dei dati salvati · aggiornamento live non disponibile.", "Gespeicherte Daten werden verwendet · Live-Aktualisierung nicht verfügbar.");
     } else {
       const time = lastSync ? new Date(lastSync).toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"}) : "";
       const source = sourceSchema === "apc" ? " · Feuille 3" : "";
-      label.textContent = txt("Données Google Sheet à jour", "Google Sheet data up to date") + source + (time ? " · " + time : "");
+      label.textContent = txt("Données Google Sheet à jour", "Google Sheet data up to date", "Dati Google Sheet aggiornati", "Google-Sheet-Daten aktuell") + source + (time ? " · " + time : "");
     }
   }
 
@@ -150,9 +150,9 @@
     const results = document.getElementById("playerFilterResults");
     if (!input || !clear) return;
 
-    input.placeholder = txt("Rechercher un joueur…", "Search a player…");
-    clear.setAttribute("aria-label", txt("Effacer la recherche", "Clear search"));
-    clear.title = txt("Effacer la recherche", "Clear search");
+    input.placeholder = txt("Rechercher un joueur…", "Search a player…", "Cerca un giocatore…", "Spieler suchen…");
+    clear.setAttribute("aria-label", txt("Effacer la recherche", "Clear search", "Cancella ricerca", "Suche löschen"));
+    clear.title = txt("Effacer la recherche", "Clear search", "Cancella ricerca", "Suche löschen");
     clear.classList.toggle("visible", !!playerFilterQuery);
 
     if (results) results.classList.toggle("visible", !!playerFilterQuery);
@@ -163,14 +163,16 @@
     let meta;
 
     if (!hasData) {
-      meta = txt("Aucune APC renseignée", "No APC data");
+      meta = txt("Aucune APC renseignée", "No APC data", "Nessun dato APC", "Keine APC-Daten");
     } else {
       const count = p.vehicles.length;
       const best = bestVehicle(p);
       meta = count + " " + txt(
         count > 1 ? "APC renseignées" : "APC renseignée",
-        count > 1 ? "APCs listed" : "APC listed"
-      ) + " · " + txt("Meilleure : ", "Best: ") + apcLabel(best) + " · " + vehicleDisplay(best);
+        count > 1 ? "APCs listed" : "APC listed",
+        count > 1 ? "APC inserite" : "APC inserita",
+        count > 1 ? "APCs eingetragen" : "APC eingetragen"
+      ) + " · " + txt("Meilleure : ", "Best: ", "Migliore: ", "Beste: ") + apcLabel(best) + " · " + vehicleDisplay(best);
     }
 
     return '<label class="player-row' + (p.selected ? ' selected' : '') + (!hasData ? ' no-data' : '') + '">' +
@@ -228,7 +230,7 @@
 
     results.innerHTML = rows.length
       ? rows.join("")
-      : '<div class="empty-state">' + txt("Aucun joueur trouvé.", "No player found.") + '</div>';
+      : '<div class="empty-state">' + txt("Aucun joueur trouvé.", "No player found.", "Nessun giocatore trovato.", "Kein Spieler gefunden.") + '</div>';
 
     results.classList.add("visible");
     bindPlayerChecks(results);
@@ -476,14 +478,14 @@
       const selectedPlayers = sel().length;
       const playersWithData = sel().filter(function(p){ return p.vehicles && p.vehicles.length; }).length;
       summary.innerHTML =
-        '<span class="apc-chip"><strong>' + all.length + '</strong> ' + txt("APC disponibles", "APCs available") + '</span>' +
-        '<span class="apc-chip"><strong>' + selectedPlayers + '</strong> ' + txt("joueurs présents", "players online") + '</span>' +
-        '<span class="apc-chip"><strong>' + playersWithData + '</strong> ' + txt("avec données APC", "with APC data") + '</span>';
+        '<span class="apc-chip"><strong>' + all.length + '</strong> ' + txt("APC disponibles", "APCs available", "APC disponibili", "APCs verfügbar") + '</span>' +
+        '<span class="apc-chip"><strong>' + selectedPlayers + '</strong> ' + txt("joueurs présents", "players online", "giocatori online", "Spieler online") + '</span>' +
+        '<span class="apc-chip"><strong>' + playersWithData + '</strong> ' + txt("avec données APC", "with APC data", "con dati APC", "mit APC-Daten") + '</span>';
     }
 
     const el = document.getElementById("vehicleList");
     if (!all.length) {
-      el.innerHTML = '<div class="empty-state">' + txt("Sélectionne d’abord les joueurs présents.", "Select the players who are online first.") + '</div>';
+      el.innerHTML = '<div class="empty-state">' + txt("Sélectionne d’abord les joueurs présents.", "Select the players who are online first.", "Seleziona prima i giocatori online.", "Wähle zuerst die Spieler aus, die online sind.") + '</div>';
       return;
     }
 
@@ -492,7 +494,7 @@
     el.innerHTML = all.map(function(x, position) {
       const v = x.vehicle;
       const width = Math.max(5, Math.min(100, (v.powerM / maxPower) * 100));
-      const precision = v.exact ? txt("Valeur exacte", "Exact value") : txt("Tranche estimée", "Estimated band");
+      const precision = v.exact ? txt("Valeur exacte", "Exact value", "Valore esatto", "Exakter Wert") : txt("Tranche estimée", "Estimated band", "Fascia stimata", "Geschätzter Bereich");
 
       return '<div class="vehicle-card">' +
         '<div class="avatar">' + silhouette() + '</div>' +
@@ -523,7 +525,7 @@
     const list = document.getElementById("resultsList");
 
     if (!arr.length) {
-      list.innerHTML = '<div class="empty-state">' + txt("Aucune APC disponible parmi les joueurs sélectionnés.", "No APC available among selected players.") + '</div>';
+      list.innerHTML = '<div class="empty-state">' + txt("Aucune APC disponible parmi les joueurs sélectionnés.", "No APC available among selected players.", "Nessuna APC disponibile tra i giocatori selezionati.", "Keine APC bei den ausgewählten Spielern verfügbar.") + '</div>';
     } else {
       list.innerHTML = arr.map(function(x,i) {
         const v = x.vehicle;
@@ -551,11 +553,15 @@
       note.textContent = sourceSchema === "apc"
         ? txt(
             "Les APC 1, 2, 3 et 4 viennent directement de Feuille 3. Le classement est basé sur leur puissance exacte. La taille des rallys sera ajoutée plus tard.",
-            "APC 1, 2, 3 and 4 come directly from Sheet 3. Ranking uses their exact power. Rally size will be added later."
+            "APC 1, 2, 3 and 4 come directly from Sheet 3. Ranking uses their exact power. Rally size will be added later.",
+            "Le APC 1, 2, 3 e 4 provengono direttamente dal foglio dati. La classifica usa la loro potenza esatta. La dimensione dei rally sarà aggiunta in seguito.",
+            "APC 1, 2, 3 und 4 stammen direkt aus dem Datenblatt. Die Rangliste verwendet ihre exakte Stärke. Die Rally-Größe wird später ergänzt."
           )
         : txt(
             "Source provisoire : l’ancien format du Sheet est encore utilisé. Passe l’Apps Script sur Feuille 3 pour afficher les numéros APC exacts.",
-            "Temporary source: the old Sheet format is still in use. Switch Apps Script to Sheet 3 to display exact APC numbers."
+            "Temporary source: the old Sheet format is still in use. Switch Apps Script to Sheet 3 to display exact APC numbers.",
+            "Fonte temporanea: è ancora in uso il vecchio formato del foglio. Passa Apps Script al foglio dati per mostrare i numeri APC esatti.",
+            "Temporäre Quelle: Das alte Tabellenformat wird noch verwendet. Stelle Apps Script auf das Datenblatt um, um die exakten APC-Nummern anzuzeigen."
           );
     }
   };
