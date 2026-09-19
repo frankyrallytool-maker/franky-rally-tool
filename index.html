@@ -203,7 +203,6 @@ select{
   margin-top:9px;padding:10px;border-radius:10px;background:rgba(42,190,108,.13);
   border:1px solid rgba(53,215,133,.28);font-size:9px;line-height:1.45;color:#b6e9cd
 }
-.generate-image{margin-top:9px}
 .secondary{
   width:100%;margin-top:9px;border-radius:10px;padding:10px;border:1px solid #28455f;
   background:#0c1724;color:#d9e4f0;font-weight:900
@@ -367,12 +366,12 @@ select{
             <div class="panel-sub" data-i18n="resultsSub">The best leaders are selected using vehicle power and rally capacity.</div>
             <div class="results-list" id="resultsList"></div>
             <div class="tip">💡 <span data-i18n="tip">All other vehicles join open rallies to help fill them.</span></div>
-            <button class="primary generate-image" id="generateImageBtn" data-i18n="generateImage">Generate image</button>
+            <button class="primary" id="generateImageBtn" style="margin-top:9px" data-i18n="generateImage">Generate image</button>
             <button class="secondary" id="backBtn" data-i18n="back">Back to attendance</button>
           </div>
         </div>
 
-        <div class="footer">FRANKY RALLY TOOL · V1.11.0 · IMAGE GENERATOR</div>
+        <div class="footer">FRANKY RALLY TOOL · V1.11.1 · IMAGE GENERATOR SAFE</div>
       </section>
     </div>
   </div>
@@ -497,5 +496,6 @@ document.getElementById("deBtn").onclick=()=>{lang="de";renderAll()};
 renderAll();
 </script>
 <script src="./live-data.js?v=25"></script>
+<script src="./image-generator.js?v=1"></script>
 </body>
 </html>
