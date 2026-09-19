@@ -1,6 +1,6 @@
 (function () {
   const API_URL = "https://script.google.com/macros/s/AKfycbxuxysWcVsk_Y6eARCGne_iH-hGUOSkAa2bkTuDLGXU9jgJ1sJPgz58Q41Cf0UcVo8svA/exec";
-  const APP_BUILD = "1.10.17";
+  const APP_BUILD = "1.10.18";
   const CACHE_KEY = "franky_sheet_cache_v3";
   const CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
@@ -331,6 +331,9 @@
 
     s = s.replace(/[\s\u00A0\u202F]/g, "").toLowerCase();
 
+    const hasPlus = /\+$/.test(s);
+    if (hasPlus) s = s.replace(/\++$/, "");
+
     let multiplier = 1;
     if (/k$/.test(s)) {
       multiplier = 1000;
@@ -362,20 +365,22 @@
     if (!/^(?:\d+(?:\.\d+)?|\.\d+)$/.test(s)) return null;
 
     const n = parseFloat(s) * multiplier;
-    return Number.isFinite(n) && n > 0 ? n : null;
+    if (!Number.isFinite(n) || n <= 0) return null;
+    return { value: n, plus: hasPlus };
   }
 
-  function formatRallySize(value) {
+  function formatRallySize(value, plus) {
     if (!Number.isFinite(value) || value <= 0) return "—";
     if (value >= 1000000) {
       const m = Math.round((value / 1000000) * 10) / 10;
-      return String(m).replace(/\.0$/, "") + "M";
+      return String(m).replace(/\.0$/, "") + "M" + (plus ? "+" : "");
     }
     if (value >= 1000) {
       const k = Math.round((value / 1000) * 10) / 10;
-      return String(k).replace(/\.0$/, "") + "K";
+      return String(k).replace(/\.0$/, "") + "K" + (plus ? "+" : "");
     }
-    return String(Math.round(value));
+    const out = String(Math.round(value));
+    return plus ? out + "+" : out;
   }
 
   function isApcSheet(values) {
@@ -395,7 +400,9 @@
       const name = String(row[0] || "").trim();
       if (!name) return;
 
-      const rallySize = parseRallySize(row[5]);
+      const rallyInfo = parseRallySize(row[5]);
+      const rallySize = rallyInfo ? rallyInfo.value : null;
+      const rallySizePlus = rallyInfo ? rallyInfo.plus : false;
       const vehicles = [];
 
       for (let col = 1; col <= 4; col++) {
@@ -405,7 +412,8 @@
           apcNo: col,
           powerM: power,
           exact: true,
-          capacity: rallySize
+          capacity: rallySize,
+          capacityPlus: rallySizePlus
         });
       }
 
@@ -418,7 +426,8 @@
         selected: false,
         vehicles: vehicles,
         power: bestPower,
-        capacity: rallySize
+        capacity: rallySize,
+        capacityPlus: rallySizePlus
       });
     });
     return result;
@@ -609,7 +618,7 @@
         return '<div class="result-card">' +
           '<div class="rank">' + (i+1) + '</div>' +
           '<div class="avatar">' + silhouette() + '</div>' +
-          '<div class="result-main"><div class="result-name">' + escapeHtml(x.player) + '</div><div class="vehicle-sub">' + escapeHtml(apcLabel(v)) + '</div><div class="result-rally-size">RALLY SIZE <strong>' + escapeHtml(formatRallySize(v.capacity)) + '</strong></div></div>' +
+          '<div class="result-main"><div class="result-name">' + escapeHtml(x.player) + '</div><div class="vehicle-sub">' + escapeHtml(apcLabel(v)) + '</div><div class="result-rally-size">RALLY SIZE <strong>' + escapeHtml(formatRallySize(v.capacity, v.capacityPlus)) + '</strong></div></div>' +
           '<div class="result-right"><strong>' + escapeHtml(vehicleDisplay(v)) + '</strong><span>START RALLY</span></div>' +
         '</div>';
       }).join("");
