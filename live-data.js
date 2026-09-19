@@ -1,6 +1,6 @@
 (function () {
   const API_URL = "https://script.google.com/macros/s/AKfycbxuxysWcVsk_Y6eARCGne_iH-hGUOSkAa2bkTuDLGXU9jgJ1sJPgz58Q41Cf0UcVo8svA/exec";
-  const APP_BUILD = "1.10.14";
+  const APP_BUILD = "1.10.15";
   const CACHE_KEY = "franky_sheet_cache_v2";
   const CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
@@ -186,7 +186,7 @@
 
   function bindPlayerChecks(container) {
     if (!container) return;
-    container.querySelectorAll(".check").forEach(function(c) {
+    container.querySelectorAll(".check[data-i]").forEach(function(c) {
       c.onchange = function(e) {
         players[+e.target.dataset.i].selected = e.target.checked;
 
