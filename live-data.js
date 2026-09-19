@@ -1,6 +1,6 @@
 (function () {
   const API_URL = "https://script.google.com/macros/s/AKfycbxuxysWcVsk_Y6eARCGne_iH-hGUOSkAa2bkTuDLGXU9jgJ1sJPgz58Q41Cf0UcVo8svA/exec";
-  const APP_BUILD = "1.10.13";
+  const APP_BUILD = "1.10.14";
   const CACHE_KEY = "franky_sheet_cache_v2";
   const CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
@@ -40,6 +40,8 @@
       ".sync-strip.ok .sync-dot{background:#35d785;box-shadow:0 0 9px rgba(53,215,133,.5)}",
       ".sync-strip.error .sync-dot{background:#ff6b6b;box-shadow:0 0 9px rgba(255,107,107,.5)}",
       ".player-row.no-data{opacity:.58}",
+      ".select-all-row{display:flex;align-items:center;gap:9px;margin:0 0 7px;padding:8px 10px;border:1px solid #285278;border-radius:10px;background:#0b1724;color:#cfeaff;font-size:10px;font-weight:950;letter-spacing:.05em}",
+      ".select-all-row .check{flex:none}",
       ".vehicle-range{font-size:10px;color:#9bdfff;font-weight:900;margin-top:3px}",
       ".empty-state{padding:18px 12px;text-align:center;border:1px dashed #27425f;border-radius:10px;color:#7890aa;font-size:10px}",
       ".pending-capacity{margin-top:8px;padding:8px 10px;border-radius:9px;background:rgba(233,178,71,.10);border:1px solid rgba(233,178,71,.25);font-size:9px;line-height:1.45;color:#e8c987}",
@@ -455,9 +457,27 @@
 
   renderPlayers = function() {
     const box = document.getElementById("playersList");
-    box.innerHTML = players.map(function(p, i) {
-      return playerRowHtml(p, i);
-    }).join("");
+    const allSelected = players.length > 0 && players.every(function(p) { return p.selected; });
+    const someSelected = players.some(function(p) { return p.selected; });
+
+    box.innerHTML =
+      '<label class="select-all-row">' +
+        '<input id="selectAllPlayers" class="check" type="checkbox" ' + (allSelected ? 'checked' : '') + '>' +
+        '<span>ALL</span>' +
+      '</label>' +
+      players.map(function(p, i) {
+        return playerRowHtml(p, i);
+      }).join("");
+
+    const allBox = document.getElementById("selectAllPlayers");
+    if (allBox) {
+      allBox.indeterminate = someSelected && !allSelected;
+      allBox.onchange = function(e) {
+        const checked = e.target.checked;
+        players.forEach(function(p) { p.selected = checked; });
+        renderAll();
+      };
+    }
 
     bindPlayerChecks(box);
     updatePlayerFilterUI();
