@@ -1,6 +1,6 @@
 (function () {
   const API_URL = "https://script.google.com/macros/s/AKfycbxuxysWcVsk_Y6eARCGne_iH-hGUOSkAa2bkTuDLGXU9jgJ1sJPgz58Q41Cf0UcVo8svA/exec";
-  const APP_BUILD = "1.11.1";
+  const APP_BUILD = "1.11.2";
   const CACHE_KEY = "franky_sheet_cache_v3";
   const CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
@@ -745,6 +745,9 @@
     };
     document.head.appendChild(script);
   }
+
+  const stalePoster = document.getElementById("frankyPosterPreview");
+  if (stalePoster && stalePoster.parentNode) stalePoster.parentNode.removeChild(stalePoster);
 
   addLiveStyles();
   ensureRallySelectorOnTop();
