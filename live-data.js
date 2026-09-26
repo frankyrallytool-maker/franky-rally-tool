@@ -1,8 +1,10 @@
 (function () {
   const API_URL = "https://script.google.com/macros/s/AKfycbxuxysWcVsk_Y6eARCGne_iH-hGUOSkAa2bkTuDLGXU9jgJ1sJPgz58Q41Cf0UcVo8svA/exec";
-  const APP_BUILD = "1.12.0";
+  const APP_BUILD = "1.12.1";
   const CACHE_KEY = "franky_sheet_cache_v3";
   const CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
+  const SELECTION_KEY = "franky_selected_players_v1";
+  const VEHICLE_SORT_KEY = "franky_vehicle_sort_v1";
 
   const LEGACY_RANGES = [
     { label: "< 200M", estimate: 150 },
@@ -21,8 +23,46 @@
   let lastSync = null;
   let sourceSchema = "unknown";
   let playerFilterQuery = "";
+  let vehicleSortMode = (function(){
+    try { return localStorage.getItem(VEHICLE_SORT_KEY) === "capacity" ? "capacity" : "power"; }
+    catch (_) { return "power"; }
+  })();
 
   function txt(fr, en, it, de) { if (lang === "fr") return fr; if (lang === "it") return it || en; if (lang === "de") return de || en; return en; }
+
+  function loadStoredSelection() {
+    try {
+      const raw = localStorage.getItem(SELECTION_KEY);
+      if (raw === null) return null;
+      const names = JSON.parse(raw);
+      if (!Array.isArray(names)) return null;
+      const map = {};
+      names.forEach(function(name) { map[String(name)] = true; });
+      return map;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function saveStoredSelection() {
+    try {
+      localStorage.setItem(SELECTION_KEY, JSON.stringify(
+        players.filter(function(p){ return p.selected; }).map(function(p){ return p.name; })
+      ));
+    } catch (_) {}
+  }
+
+  function setupVehicleSort() {
+    const select = document.getElementById("vehicleSort");
+    if (!select || select.dataset.ready === "1") return;
+    select.dataset.ready = "1";
+    select.value = vehicleSortMode;
+    select.addEventListener("change", function() {
+      vehicleSortMode = select.value === "capacity" ? "capacity" : "power";
+      try { localStorage.setItem(VEHICLE_SORT_KEY, vehicleSortMode); } catch (_) {}
+      renderVehicles();
+    });
+  }
 
   function escapeHtml(value) {
     return String(value == null ? "" : value)
@@ -40,8 +80,16 @@
       ".sync-strip.ok .sync-dot{background:#35d785;box-shadow:0 0 9px rgba(53,215,133,.5)}",
       ".sync-strip.error .sync-dot{background:#ff6b6b;box-shadow:0 0 9px rgba(255,107,107,.5)}",
       ".player-row.no-data{opacity:.58}",
-      ".select-all-row{display:flex;align-items:center;gap:9px;margin:0 0 7px;padding:8px 10px;border:1px solid #285278;border-radius:10px;background:#0b1724;color:#cfeaff;font-size:10px;font-weight:950;letter-spacing:.05em}",
-      ".select-all-row .check{flex:none}",
+      ".selection-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:0 0 8px}",
+      ".selection-action{min-height:38px;border-radius:9px;border:1px solid #285278;background:#0b1724;color:#cfeaff;font-size:10px;font-weight:950;letter-spacing:.04em;padding:8px 10px}",
+      ".selection-action:hover{background:#10243a;border-color:#3474a9}",
+      ".selection-action.clear{border-color:#493448;color:#e9b6cf;background:#17111b}",
+      ".selection-action.clear:hover{border-color:#7c4565;background:#211522}",
+      ".vehicle-sort-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 0 10px;padding:8px 10px;border:1px solid #254664;border-radius:10px;background:#0b1724}",
+      ".vehicle-sort-bar label{font-size:9px;color:#9cb2c9;font-weight:900;letter-spacing:.05em;text-transform:uppercase}",
+      ".vehicle-sort-bar select{min-width:145px;padding:7px 9px;border-radius:8px;border:1px solid #3474a9;background:#0d2135;color:#eaf6ff;font-size:11px;font-weight:900}",
+      ".vehicle-rally-size{margin-top:4px;font-size:9px;color:#9ab0c7;font-weight:900;letter-spacing:.03em}",
+      ".vehicle-rally-size strong{color:#45de90;font-size:10px;margin-left:4px}",
       ".vehicle-range{font-size:10px;color:#9bdfff;font-weight:900;margin-top:3px}",
       ".empty-state{padding:18px 12px;text-align:center;border:1px dashed #27425f;border-radius:10px;color:#7890aa;font-size:10px}",
       ".pending-capacity{margin-top:8px;padding:8px 10px;border-radius:9px;background:rgba(233,178,71,.10);border:1px solid rgba(233,178,71,.25);font-size:9px;line-height:1.45;color:#e8c987}",
@@ -191,6 +239,7 @@
     container.querySelectorAll(".check[data-i]").forEach(function(c) {
       c.onchange = function(e) {
         players[+e.target.dataset.i].selected = e.target.checked;
+        saveStoredSelection();
 
         const fromFilter = container.id === "playerFilterResults";
         if (fromFilter && e.target.checked) {
@@ -523,24 +572,34 @@
 
   renderPlayers = function() {
     const box = document.getElementById("playersList");
-    const allSelected = players.length > 0 && players.every(function(p) { return p.selected; });
-    const someSelected = players.some(function(p) { return p.selected; });
 
     box.innerHTML =
-      '<label class="select-all-row">' +
-        '<input id="selectAllPlayers" class="check" type="checkbox" ' + (allSelected ? 'checked' : '') + '>' +
-        '<span>ALL</span>' +
-      '</label>' +
+      '<div class="selection-actions">' +
+        '<button type="button" id="selectAllPlayersBtn" class="selection-action">' +
+          txt("COCHER TOUT", "CHECK ALL", "SELEZIONA TUTTI", "ALLE AUSWÄHLEN") +
+        '</button>' +
+        '<button type="button" id="clearAllPlayersBtn" class="selection-action clear">' +
+          txt("VIDER TOUT", "CLEAR ALL", "SVUOTA TUTTO", "ALLES LEEREN") +
+        '</button>' +
+      '</div>' +
       players.map(function(p, i) {
         return playerRowHtml(p, i);
       }).join("");
 
-    const allBox = document.getElementById("selectAllPlayers");
-    if (allBox) {
-      allBox.indeterminate = someSelected && !allSelected;
-      allBox.onchange = function(e) {
-        const checked = e.target.checked;
-        players.forEach(function(p) { p.selected = checked; });
+    const allBtn = document.getElementById("selectAllPlayersBtn");
+    if (allBtn) {
+      allBtn.onclick = function() {
+        players.forEach(function(p) { p.selected = true; });
+        saveStoredSelection();
+        renderAll();
+      };
+    }
+
+    const clearBtn = document.getElementById("clearAllPlayersBtn");
+    if (clearBtn) {
+      clearBtn.onclick = function() {
+        players.forEach(function(p) { p.selected = false; });
+        saveStoredSelection();
         renderAll();
       };
     }
@@ -557,7 +616,27 @@
         all.push({player:p.name, vehicle:v});
       });
     });
-    all.sort(function(a,b){ return b.vehicle.powerM - a.vehicle.powerM; });
+
+    if (vehicleSortMode === "capacity") {
+      all.sort(function(a,b) {
+        const aCap = Number.isFinite(a.vehicle.capacity) ? a.vehicle.capacity : 0;
+        const bCap = Number.isFinite(b.vehicle.capacity) ? b.vehicle.capacity : 0;
+        if (bCap !== aCap) return bCap - aCap;
+        if (!!b.vehicle.capacityPlus !== !!a.vehicle.capacityPlus) return b.vehicle.capacityPlus ? 1 : -1;
+        return b.vehicle.powerM - a.vehicle.powerM;
+      });
+    } else {
+      all.sort(function(a,b){ return b.vehicle.powerM - a.vehicle.powerM; });
+    }
+
+    const sortLabel = document.getElementById("vehicleSortLabel");
+    const sortSelect = document.getElementById("vehicleSort");
+    if (sortLabel) sortLabel.textContent = txt("Classer par", "Sort by", "Ordina per", "Sortieren nach");
+    if (sortSelect) {
+      sortSelect.value = vehicleSortMode;
+      if (sortSelect.options[0]) sortSelect.options[0].textContent = txt("Puissance", "Power", "Potenza", "Stärke");
+      if (sortSelect.options[1]) sortSelect.options[1].textContent = txt("Taille de rally", "Rally size", "Dimensione rally", "Rally-Größe");
+    }
 
     const summary = document.getElementById("apcSummary");
     if (summary) {
@@ -581,15 +660,17 @@
       const v = x.vehicle;
       const width = Math.max(5, Math.min(100, (v.powerM / maxPower) * 100));
       const precision = v.exact ? txt("Valeur exacte", "Exact value", "Valore esatto", "Exakter Wert") : txt("Tranche estimée", "Estimated band", "Fascia stimata", "Geschätzter Bereich");
+      const rallySize = formatRallySize(v.capacity, v.capacityPlus);
 
       return '<div class="vehicle-card">' +
         '<div class="avatar">' + silhouette() + '</div>' +
         '<div><div class="vehicle-name">#' + (position+1) + ' · ' + escapeHtml(x.player) + ' — ' + escapeHtml(apcLabel(v)) + '</div>' +
         '<div class="vehicle-range">' + escapeHtml(vehicleDisplay(v)) + '</div>' +
+        '<div class="vehicle-rally-size">RALLY SIZE <strong>' + escapeHtml(rallySize) + '</strong></div>' +
         '<div class="metric-grid" style="grid-template-columns:1fr">' +
         '<div><div class="metric-label">' + escapeHtml(tr[lang].power) + '</div><div class="bar power"><i style="width:' + width + '%"></i></div></div>' +
         '</div></div>' +
-        '<div class="vehicle-right"><strong>' + escapeHtml(vehicleDisplay(v)) + '</strong><span>' + escapeHtml(precision) + '</span></div>' +
+        '<div class="vehicle-right"><strong>' + escapeHtml(vehicleDisplay(v)) + '</strong><span>' + escapeHtml(rallySize) + ' · ' + escapeHtml(precision) + '</span></div>' +
       '</div>';
     }).join("");
   };
@@ -670,13 +751,16 @@
   }
 
   function applyValues(values, updatedAt, preserveCurrentSelection) {
-    const keep = preserveCurrentSelection ? selectedNames() : {};
+    const current = preserveCurrentSelection ? selectedNames() : null;
+    const stored = loadStoredSelection();
+    const keep = current !== null ? current : (stored || {});
     const parsed = parseSheet(values);
     parsed.forEach(function(p) { p.selected = !!keep[p.name]; });
 
     players.splice(0, players.length);
     parsed.forEach(function(p) { players.push(p); });
 
+    saveStoredSelection();
     lastSync = updatedAt || new Date().toISOString();
     renderAll();
   }
@@ -752,6 +836,7 @@
   addLiveStyles();
   ensureRallySelectorOnTop();
   setupPlayerFilter();
+  setupVehicleSort();
   addSyncStrip();
   checkForAppUpdate();
 

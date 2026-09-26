@@ -380,6 +380,13 @@ select{
               <div class="panel-title" data-i18n="vehiclesTitle">Available Vehicles</div>
             </div>
             <div class="panel-sub" data-i18n="vehiclesSub">Criteria: Vehicle Power + Rally Capacity</div>
+            <div class="vehicle-sort-bar">
+              <label id="vehicleSortLabel" for="vehicleSort">Sort by</label>
+              <select id="vehicleSort" aria-label="Vehicle sort">
+                <option value="power">Power</option>
+                <option value="capacity">Rally size</option>
+              </select>
+            </div>
             <div class="vehicle-list" id="vehicleList"></div>
           </div>
         </div>
@@ -399,7 +406,7 @@ select{
           </div>
         </div>
 
-        <div class="footer">FRANKY RALLY TOOL · V1.12.0 · FRANKY TIME POSTER</div>
+        <div class="footer">FRANKY RALLY TOOL · V1.12.1 · FRANKY TIME POSTER</div>
       </section>
     </div>
   </div>
@@ -523,7 +530,7 @@ document.getElementById("itBtn").onclick=()=>{lang="it";renderAll()};
 document.getElementById("deBtn").onclick=()=>{lang="de";renderAll()};
 renderAll();
 </script>
-<script src="./live-data.js?v=26"></script>
+<script src="./live-data.js?v=27"></script>
 <script src="./image-generator.js?v=3"></script>\n<script src="./floating-buttons.js?v=1"></script>
 </body>
 </html>
