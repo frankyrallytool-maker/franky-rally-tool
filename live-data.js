@@ -1,6 +1,6 @@
 (function () {
   const API_URL = "https://script.google.com/macros/s/AKfycbxuxysWcVsk_Y6eARCGne_iH-hGUOSkAa2bkTuDLGXU9jgJ1sJPgz58Q41Cf0UcVo8svA/exec";
-  const APP_BUILD = "1.12.2";
+  const APP_BUILD = "1.13.0";
   const CACHE_KEY = "franky_sheet_cache_v3";
   const CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
   const SELECTION_KEY = "franky_selected_players_v1";
@@ -113,6 +113,8 @@
       ".result-main{min-width:0}",
       ".result-rally-size{margin-top:4px;font-size:9px;color:#9ab0c7;font-weight:900;white-space:nowrap;letter-spacing:.03em}",
       ".result-rally-size strong{color:#64d0ff;font-size:10px;font-weight:950;margin-left:4px}",
+      ".result-score{margin-top:3px;font-size:9px;color:#d9b96d;font-weight:900;white-space:nowrap;letter-spacing:.03em}",
+      ".result-score strong{color:#ffd866;font-size:10px;font-weight:950;margin-left:4px}",
       ".result-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}",
       ".result-right{text-align:right}",
       ".result-right span{font-weight:950;letter-spacing:.03em}"
@@ -687,12 +689,48 @@
 
   renderResults = function() {
     const apcs = [];
+
     sel().forEach(function(p) {
+      const sharedCapacity = Number.isFinite(p.capacity) ? p.capacity : null;
+      const sharedCapacityPlus = !!p.capacityPlus;
+
       (p.vehicles || []).forEach(function(v) {
-        apcs.push({player:p.name, vehicle:v});
+        apcs.push({
+          player:p.name,
+          vehicle:v,
+          capacity:sharedCapacity,
+          capacityPlus:sharedCapacityPlus,
+          frankyScore:0
+        });
       });
     });
-    apcs.sort(function(a,b){ return b.vehicle.powerM - a.vehicle.powerM; });
+
+    const maxPower = Math.max.apply(null, apcs.map(function(x){
+      return Number.isFinite(x.vehicle.powerM) ? x.vehicle.powerM : 0;
+    }).concat([1]));
+
+    const maxCapacity = Math.max.apply(null, apcs.map(function(x){
+      return Number.isFinite(x.capacity) ? x.capacity : 0;
+    }).concat([0]));
+
+    apcs.forEach(function(x) {
+      const powerNorm = Math.max(0, x.vehicle.powerM / maxPower);
+
+      if (maxCapacity > 0 && Number.isFinite(x.capacity) && x.capacity > 0) {
+        const capacityNorm = Math.max(0, x.capacity / maxCapacity);
+        x.frankyScore = Math.pow(powerNorm, 0.60) * Math.pow(capacityNorm, 0.40) * 100;
+      } else {
+        // Legacy/no Rally Size: preserve the former power-based order.
+        x.frankyScore = powerNorm * 100;
+      }
+    });
+
+    apcs.sort(function(a,b) {
+      if (Math.abs(b.frankyScore - a.frankyScore) > 0.0001) return b.frankyScore - a.frankyScore;
+      if (b.capacityPlus !== a.capacityPlus) return b.capacityPlus ? 1 : -1;
+      if ((b.capacity || 0) !== (a.capacity || 0)) return (b.capacity || 0) - (a.capacity || 0);
+      return b.vehicle.powerM - a.vehicle.powerM;
+    });
 
     const wanted = +document.getElementById("leaderCount").value || 0;
     const n = Math.min(wanted, apcs.length);
@@ -706,10 +744,18 @@
     } else {
       list.innerHTML = arr.map(function(x,i) {
         const v = x.vehicle;
+        const rallySize = formatRallySize(x.capacity, x.capacityPlus);
+        const scoreText = x.frankyScore.toFixed(1);
+
         return '<div class="result-card">' +
           '<div class="rank">' + (i+1) + '</div>' +
           '<div class="avatar">' + silhouette() + '</div>' +
-          '<div class="result-main"><div class="result-name">' + escapeHtml(x.player) + '</div><div class="vehicle-sub">' + escapeHtml(apcLabel(v)) + '</div><div class="result-rally-size">RALLY SIZE <strong>' + escapeHtml(formatRallySize(v.capacity, v.capacityPlus)) + '</strong></div></div>' +
+          '<div class="result-main">' +
+            '<div class="result-name">' + escapeHtml(x.player) + '</div>' +
+            '<div class="vehicle-sub">' + escapeHtml(apcLabel(v)) + '</div>' +
+            '<div class="result-rally-size">RALLY SIZE <strong>' + escapeHtml(rallySize) + '</strong></div>' +
+            '<div class="result-score">FRANKY SCORE <strong>' + escapeHtml(scoreText) + '</strong></div>' +
+          '</div>' +
           '<div class="result-right"><strong>' + escapeHtml(vehicleDisplay(v)) + '</strong><span>START RALLY</span></div>' +
         '</div>';
       }).join("");
@@ -729,16 +775,16 @@
     if (note) {
       note.textContent = sourceSchema === "apc"
         ? txt(
-            "Les APC et la RALLY SIZE viennent directement de la feuille de données. Le classement reste basé sur la puissance exacte des APC.",
-            "APCs and RALLY SIZE come directly from the data sheet. Ranking is still based on exact APC power.",
-            "Le APC e la RALLY SIZE provengono direttamente dal foglio dati. La classifica resta basata sulla potenza esatta delle APC.",
-            "APCs und RALLY SIZE stammen direkt aus dem Datenblatt. Die Rangliste basiert weiterhin auf der exakten APC-Stärke."
+            "FRANKY SCORE : 60 % puissance de l’APC + 40 % Rally Size. La même Rally Size du joueur est appliquée à toutes ses APC.",
+            "FRANKY SCORE: 60% APC power + 40% Rally Size. The player's same Rally Size is applied to all of their APCs.",
+            "FRANKY SCORE: 60% potenza APC + 40% Rally Size. La stessa Rally Size del giocatore viene applicata a tutte le sue APC.",
+            "FRANKY SCORE: 60 % APC-Stärke + 40 % Rally-Größe. Für alle APCs eines Spielers wird dieselbe Rally-Größe verwendet."
           )
         : txt(
-            "Source provisoire : l’ancien format du Sheet est encore utilisé. Passe l’Apps Script sur Feuille 3 pour afficher les numéros APC exacts.",
-            "Temporary source: the old Sheet format is still in use. Switch Apps Script to Sheet 3 to display exact APC numbers.",
-            "Fonte temporanea: è ancora in uso il vecchio formato del foglio. Passa Apps Script al foglio dati per mostrare i numeri APC esatti.",
-            "Temporäre Quelle: Das alte Tabellenformat wird noch verwendet. Stelle Apps Script auf das Datenblatt um, um die exakten APC-Nummern anzuzeigen."
+            "Rally Size indisponible dans cette ancienne source : classement provisoire basé uniquement sur la puissance.",
+            "Rally Size is unavailable in this legacy source: temporary ranking is based on power only.",
+            "La Rally Size non è disponibile in questa fonte precedente: classifica provvisoria basata solo sulla potenza.",
+            "Rally-Größe ist in dieser alten Quelle nicht verfügbar: vorläufige Rangliste nur nach Stärke."
           );
     }
   };

@@ -72,22 +72,25 @@
       var nameEl = card.querySelector(".result-name");
       var apcEl = card.querySelector(".vehicle-sub");
       var sizeEl = card.querySelector(".result-rally-size strong");
+      var scoreEl = card.querySelector(".result-score strong");
 
       if (!nameEl || !apcEl) return;
 
       var name = String(nameEl.textContent || "").trim();
       var apc = String(apcEl.textContent || "").trim();
       var rallySize = sizeEl ? String(sizeEl.textContent || "").trim() : "";
+      var frankyScore = scoreEl ? String(scoreEl.textContent || "").trim() : "";
 
       if (!name || !apc) return;
 
       if (!byName[name]) {
-        byName[name] = { name: name, apcs: [], rallySize: rallySize };
+        byName[name] = { name: name, apcs: [], rallySize: rallySize, frankyScore: frankyScore };
         groups.push(byName[name]);
       }
 
       if (byName[name].apcs.indexOf(apc) === -1) byName[name].apcs.push(apc);
       if (!byName[name].rallySize && rallySize) byName[name].rallySize = rallySize;
+      if (!byName[name].frankyScore && frankyScore) byName[name].frankyScore = frankyScore;
     });
 
     return groups;
@@ -139,7 +142,7 @@
 
     ctx.fillStyle = "#9ab7ce";
     ctx.font = (h >= 48 ? "700 13px" : "700 11px") + " Arial, Helvetica, sans-serif";
-    ctx.fillText("Rally size " + (item.rallySize || "—"), apcX, y + Math.round(h * .76));
+    ctx.fillText("Rally size " + (item.rallySize || "—") + "  ·  Franky " + (item.frankyScore || "—"), apcX, y + Math.round(h * .76));
 
     ctx.fillStyle = "rgba(182,214,236,.55)";
     ctx.font = "900 " + (h >= 48 ? 20 : 16) + "px Arial, Helvetica, sans-serif";
