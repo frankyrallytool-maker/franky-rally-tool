@@ -1,6 +1,6 @@
 (function () {
   const API_URL = "https://script.google.com/macros/s/AKfycbxuxysWcVsk_Y6eARCGne_iH-hGUOSkAa2bkTuDLGXU9jgJ1sJPgz58Q41Cf0UcVo8svA/exec";
-  const APP_BUILD = "1.12.1";
+  const APP_BUILD = "1.12.2";
   const CACHE_KEY = "franky_sheet_cache_v3";
   const CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
   const SELECTION_KEY = "franky_selected_players_v1";
@@ -612,7 +612,17 @@
   renderVehicles = function() {
     const all = [];
     sel().forEach(function(p) {
-      (p.vehicles || []).forEach(function(v) {
+      const vehicles = p.vehicles || [];
+
+      if (vehicleSortMode === "capacity") {
+        const apc1 = vehicles.find(function(v) {
+          return Number(v.apcNo) === 1;
+        });
+        if (apc1) all.push({player:p.name, vehicle:apc1});
+        return;
+      }
+
+      vehicles.forEach(function(v) {
         all.push({player:p.name, vehicle:v});
       });
     });
