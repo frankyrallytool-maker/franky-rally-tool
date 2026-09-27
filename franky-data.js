@@ -90,7 +90,7 @@ window.FRANKY_SYNC_DATA = {
         },
         {
           "apcNo": 2,
-          "powerM": 400.0,
+          "powerM": 554.0,
           "troopType": "shooter"
         },
         {
