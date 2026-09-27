@@ -1,14 +1,64 @@
 {
-  "Chrisxclusive": {"1":"fighter","2":"shooter","3":"rider"},
-  "Demi Dieu Alfa": {"1":"shooter","2":"rider","3":"fighter"},
-  "Déesse Mathou": {"1":"fighter","2":"shooter","3":"rider"},
-  "Fabia-DS": {"1":"fighter","2":"shooter","3":"rider","4":"rider"},
-  "Ketzan": {"1":"fighter","2":"shooter","3":"rider","4":"none"},
-  "Land of Human": {"1":"shooter"},
-  "liliabreakş": {"1":"fighter"},
-  "Lilith": {"1":"fighter","2":"shooter","3":"rider"},
-  "MelCocoloco": {"1":"fighter","2":"rider","3":"shooter","4":"none"},
-  "NubïanQuéèn": {"1":"fighter","2":"shooter","3":"rider","4":"fighter"},
-  "Riley Sky ツ": {"1":"fighter","2":"shooter","3":"none","4":"none"},
-  "SilviPa": {"1":"fighter","2":"shooter","3":"none","4":"none"}
+  "Chrisxclusive": {
+    "1": "fighter",
+    "2": "shooter",
+    "3": "rider"
+  },
+  "Demi Dieu Alfa": {
+    "1": "shooter",
+    "2": "rider",
+    "3": "fighter"
+  },
+  "Déesse Mathou": {
+    "1": "fighter",
+    "2": "shooter",
+    "3": "rider"
+  },
+  "Fabia-DS": {
+    "1": "fighter",
+    "2": "shooter",
+    "3": "rider",
+    "4": "rider"
+  },
+  "Ketzan": {
+    "1": "fighter",
+    "2": "shooter",
+    "3": "rider",
+    "4": "none"
+  },
+  "Land of Human": {
+    "1": "shooter"
+  },
+  "Lilith": {
+    "1": "fighter",
+    "2": "shooter",
+    "3": "rider"
+  },
+  "MelCocoloco": {
+    "1": "fighter",
+    "2": "rider",
+    "3": "shooter",
+    "4": "none"
+  },
+  "NubïanQuéèn": {
+    "1": "fighter",
+    "2": "shooter",
+    "3": "rider",
+    "4": "fighter"
+  },
+  "Riley Sky ツ": {
+    "1": "fighter",
+    "2": "shooter",
+    "3": "none",
+    "4": "none"
+  },
+  "SilviPa": {
+    "1": "fighter",
+    "2": "shooter",
+    "3": "none",
+    "4": "none"
+  },
+  "liliabreakş": {
+    "1": "fighter"
+  }
 }
