@@ -28,6 +28,157 @@
     return minSize;
   }
 
+
+  function seededRandom(seed) {
+    var s = (seed >>> 0) || 1;
+    return function () {
+      s ^= s << 13;
+      s ^= s >>> 17;
+      s ^= s << 5;
+      return ((s >>> 0) % 100000) / 100000;
+    };
+  }
+
+  function drawGrungeTexture(ctx, w, h, seed) {
+    var rnd = seededRandom(seed || 434);
+
+    ctx.save();
+
+    // Dust / chipped paint.
+    for (var i = 0; i < 360; i++) {
+      var x = Math.floor(rnd() * w);
+      var y = Math.floor(rnd() * h);
+      var rw = 1 + Math.floor(rnd() * 9);
+      var rh = 1 + Math.floor(rnd() * 3);
+      ctx.fillStyle = rnd() > .55 ? "rgba(255,255,255,.045)" : "rgba(0,0,0,.10)";
+      ctx.fillRect(x, y, rw, rh);
+    }
+
+    // Scratches.
+    ctx.lineCap = "round";
+    for (var j = 0; j < 58; j++) {
+      var sx = rnd() * w;
+      var sy = rnd() * h;
+      var len = 16 + rnd() * 90;
+      var ang = (-.22 + rnd() * .44);
+      ctx.beginPath();
+      ctx.moveTo(sx, sy);
+      ctx.lineTo(sx + Math.cos(ang) * len, sy + Math.sin(ang) * len);
+      ctx.strokeStyle = rnd() > .45 ? "rgba(232,244,252,.055)" : "rgba(255,91,168,.045)";
+      ctx.lineWidth = .6 + rnd() * 1.5;
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+
+  function drawDistressedFrame(ctx, w, h, seed) {
+    var rnd = seededRandom(seed || 9152);
+    ctx.save();
+
+    // Burned / distressed edges.
+    var edge = ctx.createLinearGradient(0, 0, 0, h);
+    edge.addColorStop(0, "rgba(0,0,0,.44)");
+    edge.addColorStop(.035, "rgba(0,0,0,0)");
+    edge.addColorStop(.965, "rgba(0,0,0,0)");
+    edge.addColorStop(1, "rgba(0,0,0,.55)");
+    ctx.fillStyle = edge;
+    ctx.fillRect(0, 0, w, h);
+
+    var side = ctx.createLinearGradient(0, 0, w, 0);
+    side.addColorStop(0, "rgba(0,0,0,.48)");
+    side.addColorStop(.03, "rgba(0,0,0,0)");
+    side.addColorStop(.97, "rgba(0,0,0,0)");
+    side.addColorStop(1, "rgba(0,0,0,.48)");
+    ctx.fillStyle = side;
+    ctx.fillRect(0, 0, w, h);
+
+    // Irregular light chips near the border.
+    ctx.fillStyle = "rgba(223,236,244,.10)";
+    for (var i = 0; i < 95; i++) {
+      var top = rnd() > .5;
+      var vertical = rnd() > .52;
+      var x = vertical ? (rnd() > .5 ? rnd() * 16 : w - rnd() * 16) : rnd() * w;
+      var y = top ? rnd() * 16 : h - rnd() * 16;
+      if (vertical) y = rnd() * h;
+      ctx.fillRect(x, y, 1 + rnd() * 8, 1 + rnd() * 2.2);
+    }
+
+    ctx.restore();
+  }
+
+  function drawHandTitle(ctx, text, x, y, maxWidth) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(-0.035);
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
+
+    var families = '"Brush Script MT","Segoe Print","Segoe Script","Comic Sans MS",cursive';
+    var size = fitText(ctx, text, maxWidth, 94, 58, "900", families);
+
+    // Rough dark shadow.
+    ctx.font = "900 " + size + "px " + families;
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = "rgba(0,0,0,.55)";
+    ctx.lineWidth = 8;
+    ctx.strokeText(text, 4, 6);
+
+    // Dry-brush outer edge.
+    ctx.strokeStyle = "#ff64b7";
+    ctx.lineWidth = 3.5;
+    ctx.strokeText(text, 0, 0);
+
+    // Chalky hand-written fill.
+    ctx.fillStyle = "#f4f1e9";
+    ctx.fillText(text, 0, 0);
+
+    // Imperfect pink highlight.
+    ctx.globalAlpha = .72;
+    ctx.fillStyle = "#ff73bd";
+    ctx.fillText("TIME !", size * 1.08, 3);
+    ctx.globalAlpha = 1;
+
+    // Hand-painted underline.
+    ctx.strokeStyle = "#ff64b7";
+    ctx.lineCap = "round";
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(-maxWidth * .29, 18);
+    ctx.quadraticCurveTo(0, 29, maxWidth * .31, 14);
+    ctx.stroke();
+
+    ctx.globalAlpha = .45;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(-maxWidth * .22, 27);
+    ctx.lineTo(maxWidth * .24, 22);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  function drawRowDistress(ctx, x, y, w, h, index) {
+    var rnd = seededRandom(8000 + index * 97);
+    ctx.save();
+    ctx.strokeStyle = "rgba(212,232,245,.05)";
+    ctx.lineWidth = 1;
+
+    for (var i = 0; i < 5; i++) {
+      var sx = x + 8 + rnd() * (w - 16);
+      var sy = y + 4 + rnd() * (h - 8);
+      ctx.beginPath();
+      ctx.moveTo(sx, sy);
+      ctx.lineTo(sx + 8 + rnd() * 28, sy + (rnd() - .5) * 4);
+      ctx.stroke();
+    }
+
+    // Tiny paint slash.
+    ctx.fillStyle = index % 3 === 0 ? "rgba(255,100,183,.22)" : "rgba(94,215,255,.14)";
+    ctx.fillRect(x + 3, y + 7, 3, Math.max(10, h - 14));
+    ctx.restore();
+  }
+
   function drawCover(ctx, img, x, y, w, h, focusY) {
     var scale = Math.max(w / img.width, h / img.height);
     var sw = w / scale;
@@ -121,6 +272,7 @@
     ctx.lineWidth = 1.3;
     ctx.strokeStyle = "rgba(101,165,208,.55)";
     ctx.stroke();
+    drawRowDistress(ctx, x, y, w, h, index);
 
     var avatarSize = Math.max(30, Math.min(46, h - 8));
     drawAvatar(ctx, x + 7, y + (h - avatarSize) / 2, avatarSize, index);
@@ -279,6 +431,7 @@
       bg.addColorStop(1, "#03080d");
       ctx.fillStyle = bg;
       ctx.fillRect(0, 0, W, H);
+      drawGrungeTexture(ctx, W, H, 434);
 
       // Cinematic top art inspired by the validated Dark War mockup.
       if (bannerImg) {
@@ -329,16 +482,7 @@
       fitText(ctx, "ABYX", 540, 78, 58, "900");
       ctx.fillText("ABYX", W / 2, 250);
 
-      ctx.fillStyle = "#ff64b7";
-      fitText(ctx, "FRANKY TIME !", 760, 78, 52, "900");
-      ctx.fillText("FRANKY TIME !", W / 2, 335);
-
-      ctx.strokeStyle = "#ff64b7";
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.moveTo(250, 352);
-      ctx.lineTo(650, 352);
-      ctx.stroke();
+      drawHandTitle(ctx, "FRANKY TIME !", W / 2, 337, 760);
 
       ctx.fillStyle = "#c6e7f8";
       ctx.font = "900 italic 28px Arial, Helvetica, sans-serif";
@@ -351,7 +495,11 @@
       var panelH = 800;
 
       roundedRect(ctx, panelX, panelY, panelW, panelH, 18);
-      ctx.fillStyle = "rgba(5,16,26,.94)";
+      var panelGrad = ctx.createLinearGradient(panelX, panelY, panelX + panelW, panelY + panelH);
+      panelGrad.addColorStop(0, "rgba(5,16,26,.97)");
+      panelGrad.addColorStop(.55, "rgba(7,20,31,.94)");
+      panelGrad.addColorStop(1, "rgba(3,11,18,.98)");
+      ctx.fillStyle = panelGrad;
       ctx.fill();
       ctx.strokeStyle = "rgba(155,195,222,.34)";
       ctx.lineWidth = 2;
@@ -367,6 +515,12 @@
       ctx.fillStyle = "#9ed5f8";
       ctx.font = "900 27px Arial, Helvetica, sans-serif";
       ctx.fillText("RALLIES LAUNCHERS !", panelX + 38, panelY + 28);
+      ctx.strokeStyle = "rgba(255,100,183,.72)";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(panelX + 32, panelY + 41);
+      ctx.lineTo(panelX + 292, panelY + 37);
+      ctx.stroke();
 
       ctx.textAlign = "right";
       ctx.fillStyle = "#ff7bc2";
@@ -448,6 +602,10 @@
       ctx.fillStyle = "#a9c7db";
       ctx.font = "800 13px Arial, Helvetica, sans-serif";
       ctx.fillText("ABYX · FRANKY EVENT", W / 2, 1572);
+
+      // Final grunge pass: scratches + worn poster edges.
+      drawGrungeTexture(ctx, W, H, 20260927);
+      drawDistressedFrame(ctx, W, H, 2026);
 
       canvas.toBlob(function (blob) {
         if (button) {
