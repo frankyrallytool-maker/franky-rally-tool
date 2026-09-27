@@ -80,12 +80,27 @@ window.FRANKY_SYNC_DATA = {
     },
     {
       "name": "• Alexandra •",
-      "rallySize": null,
+      "rallySize": 79200.0,
       "rallySizePlus": false,
       "apcs": [
         {
           "apcNo": 1,
           "powerM": 1530.0,
+          "troopType": "fighter"
+        },
+        {
+          "apcNo": 2,
+          "powerM": 400.0,
+          "troopType": "shooter"
+        },
+        {
+          "apcNo": 3,
+          "powerM": 250.0,
+          "troopType": "fighter"
+        },
+        {
+          "apcNo": 4,
+          "powerM": 200.0,
           "troopType": "fighter"
         }
       ]
