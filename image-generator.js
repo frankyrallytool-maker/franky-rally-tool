@@ -472,252 +472,454 @@
     document.body.appendChild(overlay);
   }
 
-  function generate() {
-    var groups = getLaunchers();
-    var rallyCount = getRallyCount();
+  function drawNeonCity(ctx, W, H) {
+    ctx.save();
+    var sky = ctx.createLinearGradient(0, 0, 0, H);
+    sky.addColorStop(0, "#071329");
+    sky.addColorStop(.52, "#0a1f38");
+    sky.addColorStop(1, "#07111d");
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, W, H);
 
-    if (!groups.length || !rallyCount) {
+    var glow = ctx.createRadialGradient(W * .68, H * .24, 20, W * .68, H * .24, W * .62);
+    glow.addColorStop(0, "rgba(44,169,255,.22)");
+    glow.addColorStop(.52, "rgba(17,75,135,.10)");
+    glow.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, W, H);
+
+    var buildings = [
+      [18,118,78,250],[86,78,64,290],[143,145,74,220],[210,96,58,275],
+      [270,128,80,240],[346,62,62,305],[414,115,80,252],[500,74,72,292],
+      [578,126,70,244],[646,88,62,282],[710,138,78,230],[792,70,70,300],[850,120,54,250]
+    ];
+    for (var i=0;i<buildings.length;i++) {
+      var b=buildings[i];
+      var bg=ctx.createLinearGradient(b[0],b[1],b[0],b[1]+b[3]);
+      bg.addColorStop(0, i%3===0 ? "#102b46" : "#0c2137");
+      bg.addColorStop(1, "#07101b");
+      ctx.fillStyle=bg;
+      ctx.fillRect(b[0],b[1],b[2],b[3]);
+      for(var yy=b[1]+18; yy<b[1]+b[3]-12; yy+=24){
+        for(var xx=b[0]+10; xx<b[0]+b[2]-8; xx+=18){
+          var hot=((xx+yy+i*13)%5===0);
+          ctx.fillStyle=hot ? "rgba(255,156,55,.72)" : "rgba(72,203,255,.42)";
+          ctx.fillRect(xx,yy,5,9);
+        }
+      }
+    }
+
+    ctx.fillStyle="#08111b";
+    ctx.fillRect(W*.66,112,13,210);
+    ctx.fillRect(W*.81,112,13,210);
+    ctx.fillRect(W*.625,105,W*.225,14);
+    ctx.fillRect(W*.645,126,W*.185,9);
+    ctx.fillStyle="rgba(255,139,38,.68)";
+    ctx.fillRect(W*.625,103,W*.225,3);
+
+    function sign(x,y,w,h,text,color){
+      ctx.save();
+      ctx.shadowBlur=16; ctx.shadowColor=color;
+      ctx.strokeStyle=color; ctx.lineWidth=2;
+      ctx.strokeRect(x,y,w,h);
+      ctx.fillStyle="rgba(4,12,22,.72)";
+      ctx.fillRect(x,y,w,h);
+      ctx.fillStyle=color;
+      ctx.font="900 14px Arial, Helvetica, sans-serif";
+      ctx.textAlign="center";
+      ctx.fillText(text,x+w/2,y+h/2+5);
+      ctx.restore();
+    }
+    sign(45,52,84,36,"ABYX","#59d6ff");
+    sign(745,44,108,36,"RALLY","#ff9d2e");
+    sign(684,176,72,32,"勝利","#59d6ff");
+
+    ctx.strokeStyle="rgba(5,9,15,.86)";
+    ctx.lineWidth=4;
+    for(var w=0;w<5;w++){
+      ctx.beginPath();
+      ctx.moveTo(-20,44+w*23);
+      ctx.quadraticCurveTo(W*.52,80+w*18,W+30,22+w*28);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawCrown(ctx, x, y, size, color) {
+    ctx.save();
+    ctx.translate(x,y);
+    ctx.fillStyle=color;
+    ctx.beginPath();
+    ctx.moveTo(-size*.5,size*.28);
+    ctx.lineTo(-size*.38,-size*.26);
+    ctx.lineTo(-size*.10,size*.02);
+    ctx.lineTo(0,-size*.42);
+    ctx.lineTo(size*.14,size*.02);
+    ctx.lineTo(size*.42,-size*.28);
+    ctx.lineTo(size*.5,size*.28);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillRect(-size*.48,size*.31,size*.96,size*.12);
+    ctx.restore();
+  }
+
+  function drawBrushWord(ctx, text, x, y, maxWidth, fill, shadow) {
+    ctx.save();
+    ctx.translate(x,y);
+    ctx.transform(1,-.06,-.10,1,0,0);
+    ctx.textAlign="center";
+    ctx.textBaseline="alphabetic";
+    var family='"Arial Black",Impact,Arial,sans-serif';
+    var size=fitText(ctx,text,maxWidth,82,42,"900",family);
+    ctx.font="900 "+size+"px "+family;
+    ctx.lineJoin="round";
+    ctx.strokeStyle=shadow || "rgba(0,0,0,.72)";
+    ctx.lineWidth=10;
+    ctx.strokeText(text,4,7);
+    ctx.strokeStyle="rgba(255,255,255,.13)";
+    ctx.lineWidth=2;
+    ctx.strokeText(text,0,0);
+    ctx.fillStyle=fill;
+    ctx.fillText(text,0,0);
+    ctx.restore();
+  }
+
+  function drawHeroSilhouette(ctx) {
+    ctx.save();
+    ctx.translate(96,118);
+
+    ctx.fillStyle="#07101a";
+    ctx.beginPath();
+    ctx.ellipse(118,105,92,102,-.12,0,Math.PI*2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(62,118); ctx.quadraticCurveTo(5,192,28,292);
+    ctx.quadraticCurveTo(80,250,103,170); ctx.closePath(); ctx.fill();
+
+    ctx.fillStyle="#e8c1ad";
+    ctx.beginPath();
+    ctx.ellipse(120,108,55,67,-.10,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.fillStyle="#0a1019";
+    ctx.beginPath();
+    ctx.moveTo(73,74); ctx.quadraticCurveTo(118,24,171,63);
+    ctx.lineTo(154,99); ctx.quadraticCurveTo(126,70,96,108);
+    ctx.lineTo(79,122); ctx.closePath(); ctx.fill();
+
+    ctx.strokeStyle="#14233a"; ctx.lineWidth=4;
+    ctx.beginPath(); ctx.moveTo(91,111); ctx.lineTo(108,108); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(135,107); ctx.lineTo(153,109); ctx.stroke();
+    ctx.fillStyle="#56d8ff";
+    ctx.beginPath(); ctx.arc(102,110,3.5,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle="#ff9c2d";
+    ctx.beginPath(); ctx.arc(143,109,3.5,0,Math.PI*2); ctx.fill();
+
+    ctx.fillStyle="#d8ad9c";
+    ctx.fillRect(105,165,32,36);
+    ctx.fillStyle="#f4f5f6";
+    ctx.beginPath();
+    ctx.moveTo(75,194); ctx.lineTo(161,194); ctx.lineTo(182,300); ctx.lineTo(56,300); ctx.closePath(); ctx.fill();
+
+    ctx.fillStyle="#0a1420";
+    ctx.font="900 24px Arial, Helvetica, sans-serif";
+    ctx.textAlign="center";
+    ctx.fillText("ABYX",119,252);
+    drawCrown(ctx,119,217,26,"#0a1420");
+
+    ctx.strokeStyle="#0a1019"; ctx.lineWidth=28; ctx.lineCap="round";
+    ctx.beginPath(); ctx.moveTo(70,205); ctx.lineTo(26,284); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(166,205); ctx.lineTo(205,282); ctx.stroke();
+    ctx.strokeStyle="#278fd2"; ctx.lineWidth=4;
+    ctx.beginPath(); ctx.moveTo(61,210); ctx.lineTo(25,279); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(175,210); ctx.lineTo(205,278); ctx.stroke();
+
+    ctx.strokeStyle="#ff9d2e"; ctx.lineWidth=6;
+    ctx.beginPath(); ctx.arc(91,55,18,0,Math.PI*2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(132,51,18,0,Math.PI*2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(109,53); ctx.lineTo(114,52); ctx.stroke();
+
+    ctx.restore();
+  }
+
+  function getRole(index) {
+    if(index<3) return {label:"CORE", fill:"#f3bd52", text:"#101820", border:"#ffd97b"};
+    if(index<6) return {label:"HOT", fill:"#f36c21", text:"#111820", border:"#ff9b4a"};
+    return {label:"BACKUP", fill:"#28b8ee", text:"#07131e", border:"#74dcff"};
+  }
+
+  function cleanApcText(value) {
+    return String(value || "—")
+      .replace(/APC\\s*\\d*\\s*[:·-]?\\s*/ig,"")
+      .replace(/\\s+/g," ")
+      .trim() || "—";
+  }
+
+  function drawRoleBadge(ctx,x,y,w,h,role){
+    ctx.save();
+    roundedRect(ctx,x,y,w,h,8);
+    var g=ctx.createLinearGradient(x,y,x,y+h);
+    g.addColorStop(0,role.border);
+    g.addColorStop(1,role.fill);
+    ctx.fillStyle=g; ctx.fill();
+    ctx.strokeStyle="rgba(255,255,255,.28)"; ctx.lineWidth=1; ctx.stroke();
+    ctx.fillStyle=role.text;
+    ctx.font="900 14px Arial, Helvetica, sans-serif";
+    ctx.textAlign="center"; ctx.textBaseline="middle";
+    ctx.fillText(role.label,x+w/2,y+h/2+1);
+    ctx.restore();
+  }
+
+  function drawRankMedal(ctx,x,y,w,h,rank){
+    ctx.save();
+    roundedRect(ctx,x,y,w,h,7);
+    var g=ctx.createLinearGradient(x,y,x+w,y+h);
+    if(rank===1){g.addColorStop(0,"#ffe188");g.addColorStop(1,"#c47b0f");}
+    else if(rank===2){g.addColorStop(0,"#f1f5f8");g.addColorStop(1,"#75899d");}
+    else if(rank===3){g.addColorStop(0,"#e59b65");g.addColorStop(1,"#9a4e29");}
+    else {g.addColorStop(0,"#177ab7");g.addColorStop(1,"#0d3e68");}
+    ctx.fillStyle=g; ctx.fill();
+    ctx.strokeStyle=rank<=3?"rgba(255,224,146,.7)":"rgba(82,211,255,.55)";
+    ctx.lineWidth=1.2; ctx.stroke();
+    ctx.fillStyle=rank<=3?"#111820":"#c9f1ff";
+    ctx.font="900 "+(rank<10?25:20)+"px Arial, Helvetica, sans-serif";
+    ctx.textAlign="center"; ctx.textBaseline="middle";
+    ctx.fillText(String(rank),x+w/2,y+h/2+1);
+    ctx.restore();
+  }
+
+  function drawAnimeRow(ctx,x,y,w,h,item,index){
+    var rank=index+1;
+    var role=getRole(index);
+    ctx.save();
+    roundedRect(ctx,x,y,w,h,6);
+    var row=ctx.createLinearGradient(x,y,x+w,y);
+    row.addColorStop(0,index<3?"rgba(18,35,51,.98)":"rgba(8,22,35,.98)");
+    row.addColorStop(1,"rgba(5,15,26,.98)");
+    ctx.fillStyle=row; ctx.fill();
+    ctx.strokeStyle=index<3?"rgba(243,189,82,.28)":"rgba(62,181,235,.20)";
+    ctx.lineWidth=1; ctx.stroke();
+
+    drawRankMedal(ctx,x+8,y+7,52,h-14,rank);
+
+    var nameX=x+72;
+    var roleW=92, scoreW=88, rallyW=116, apcW=122;
+    var roleX=x+w-roleW-10;
+    var scoreX=roleX-scoreW-8;
+    var rallyX=scoreX-rallyW-8;
+    var apcX=rallyX-apcW-8;
+    var nameW=apcX-nameX-12;
+
+    ctx.textAlign="left"; ctx.textBaseline="alphabetic";
+    ctx.fillStyle="#f5f8fb";
+    fitText(ctx,item.name,nameW,h>=56?20:17,11,"900","Arial, Helvetica, sans-serif");
+    ctx.fillText(item.name,nameX,y+h*.46);
+
+    ctx.fillStyle="#77d7ff";
+    ctx.font="800 "+(h>=56?12:10)+"px Arial, Helvetica, sans-serif";
+    ctx.fillText("RALLY LAUNCHER",nameX,y+h*.74);
+
+    function cell(cx,cw,label,value,color){
+      ctx.fillStyle="rgba(255,255,255,.035)";
+      roundedRect(ctx,cx,y+7,cw,h-14,6); ctx.fill();
+      ctx.fillStyle="#7f9bb3";
+      ctx.font="800 9px Arial, Helvetica, sans-serif";
+      ctx.textAlign="center";
+      ctx.fillText(label,cx+cw/2,y+18);
+      ctx.fillStyle=color||"#edf7ff";
+      ctx.font="900 "+(h>=56?15:13)+"px Arial, Helvetica, sans-serif";
+      fitText(ctx,String(value||"—"),cw-8,h>=56?15:13,10,"900","Arial, Helvetica, sans-serif");
+      ctx.fillText(String(value||"—"),cx+cw/2,y+h-13);
+    }
+
+    cell(apcX,apcW,"APC",cleanApcText(item.apcs.join(" / ")),"#edf7ff");
+    cell(rallyX,rallyW,"RALLY SIZE",item.rallySize||"—","#edf7ff");
+    cell(scoreX,scoreW,"FRANKY",item.frankyScore||"—",index<3?"#f4c35d":"#63d9ff");
+    drawRoleBadge(ctx,roleX,y+10,roleW,h-20,role);
+    ctx.restore();
+  }
+
+  function drawStrategyZone(ctx,W,y,rallyCount){
+    var h=220;
+    ctx.save();
+    var bg=ctx.createLinearGradient(0,y,0,y+h);
+    bg.addColorStop(0,"#0a1725");
+    bg.addColorStop(1,"#07101a");
+    ctx.fillStyle=bg; ctx.fillRect(0,y,W,h);
+
+    ctx.strokeStyle="rgba(71,196,255,.10)";
+    ctx.lineWidth=1;
+    for(var gx=0;gx<W;gx+=45){ctx.beginPath();ctx.moveTo(gx,y);ctx.lineTo(gx,y+h);ctx.stroke();}
+    for(var gy=y;gy<y+h;gy+=38){ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(W,gy);ctx.stroke();}
+
+    ctx.textAlign="left";
+    ctx.fillStyle="#ff9d2e";
+    ctx.font="900 98px Impact, Arial Black, sans-serif";
+    ctx.fillText(String(rallyCount),48,y+124);
+    ctx.fillStyle="#f5f7f8";
+    ctx.font="900 30px Arial Black, Arial, sans-serif";
+    ctx.fillText("RALLIES",184,y+79);
+    ctx.fillText("TO BE SENT",184,y+115);
+
+    var cx=575, cy=y+108;
+    ctx.strokeStyle="#52d5ff"; ctx.lineWidth=3;
+    ctx.beginPath();ctx.arc(cx,cy,50,0,Math.PI*2);ctx.stroke();
+    ctx.beginPath();ctx.arc(cx,cy,33,0,Math.PI*2);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx-68,cy);ctx.lineTo(cx+68,cy);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx,cy-68);ctx.lineTo(cx,cy+68);ctx.stroke();
+    drawCrown(ctx,cx,cy-4,38,"#ff9d2e");
+
+    ctx.strokeStyle="#ff9d2e";ctx.lineWidth=5;ctx.lineCap="round";
+    ctx.beginPath();ctx.moveTo(720,y+145);ctx.quadraticCurveTo(676,y+152,636,y+130);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(637,y+130);ctx.lineTo(655,y+128);ctx.lineTo(646,y+145);ctx.stroke();
+
+    ctx.textAlign="right";
+    ctx.fillStyle="#f5f7f8";
+    ctx.font="900 17px Arial, Helvetica, sans-serif";
+    ctx.fillText("ALL THE OTHERS",W-42,y+65);
+    ctx.fillText("JOIN THE OPEN RALLIES",W-42,y+88);
+    ctx.restore();
+  }
+
+  function drawPosterFooter(ctx,W,y){
+    var h=72;
+    ctx.save();
+    ctx.fillStyle="#050b12";ctx.fillRect(0,y,W,h);
+    ctx.strokeStyle="rgba(78,200,255,.22)";ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();
+    var items=[
+      {x:115,icon:"⚔",text:"RALLY SMARTER"},
+      {x:350,icon:"◎",text:"HIT HARDER"},
+      {x:585,icon:"●",text:"GROW TOGETHER"},
+      {x:815,icon:"♛",text:"ABYX"}
+    ];
+    ctx.textBaseline="middle";
+    items.forEach(function(it){
+      ctx.fillStyle=it.x>760?"#ffb13d":"#eaf7ff";
+      ctx.font="900 26px Arial, Helvetica, sans-serif";
+      ctx.textAlign="center";ctx.fillText(it.icon,it.x-58,y+36);
+      ctx.fillStyle="#eaf7ff";ctx.font="800 13px Arial, Helvetica, sans-serif";
+      ctx.fillText(it.text,it.x+20,y+36);
+    });
+    ctx.restore();
+  }
+
+  function generate() {
+    var groups=getLaunchers();
+    var rallyCount=getRallyCount();
+    if(!groups.length || !rallyCount){
       window.alert("Build a rally plan first.");
       return;
     }
 
-    var button = document.getElementById("generateImageBtn");
-    var originalText = button ? button.textContent : "GENERATE IMAGE";
-    if (button) {
-      button.disabled = true;
-      button.textContent = "GENERATING…";
-    }
+    var button=document.getElementById("generateImageBtn");
+    var originalText=button?button.textContent:"GENERATE IMAGE";
+    if(button){button.disabled=true;button.textContent="GENERATING…";}
 
-    loadBanner(function (bannerImg) {
-      var maxRows = Math.min(groups.length, 18);
-      var shown = groups.slice(0, maxRows);
+    loadBanner(function(bannerImg){
+      var maxRows=Math.min(groups.length,18);
+      var shown=groups.slice(0,maxRows);
+      var rowH=maxRows<=7?62:maxRows<=11?58:maxRows<=15?54:50;
+      var gap=5;
+      var panelHeaderH=58;
+      var panelPad=14;
+      var panelY=488;
+      var panelH=panelHeaderH + panelPad + maxRows*rowH + Math.max(0,maxRows-1)*gap + panelPad;
+      var strategyY=panelY+panelH+20;
+      var footerY=strategyY+220;
+      var H=footerY+72;
+      var W=900;
 
-      // The central launcher frame now grows/shrinks with the number of launchers.
-      var rowH = maxRows <= 5 ? 58 : maxRows <= 9 ? 54 : maxRows <= 13 ? 49 : 44;
-      var gap = maxRows >= 15 ? 4 : maxRows >= 10 ? 5 : 7;
-      var panelX = 126;
-      var panelY = 440;
-      var panelW = 648;
-      var panelHeaderH = 66;
-      var panelBottomPad = 20;
-      var listHeight = maxRows * rowH + Math.max(0, maxRows - 1) * gap;
-      var panelH = panelHeaderH + listHeight + panelBottomPad;
-
-      var lowerY = panelY + panelH + 28;
-      var lowerArtH = 235;
-      var joinY = lowerY + 157;
-      var countY = lowerY + 220;
-      var footerY = countY + 137;
-
-      var canvas = document.createElement("canvas");
-      canvas.width = 900;
-      canvas.height = Math.max(980, footerY + 36);
-      var ctx = canvas.getContext("2d");
-
-      if (!ctx) {
-        if (button) {
-          button.disabled = false;
-          button.textContent = originalText;
-        }
+      var canvas=document.createElement("canvas");
+      canvas.width=W;canvas.height=H;
+      var ctx=canvas.getContext("2d");
+      if(!ctx){
+        if(button){button.disabled=false;button.textContent=originalText;}
         return;
       }
 
-      var W = 900;
-      var H = canvas.height;
+      drawNeonCity(ctx,W,520);
 
-      var bg = ctx.createLinearGradient(0, 0, 0, H);
-      bg.addColorStop(0, "#06131f");
-      bg.addColorStop(.56, "#07131e");
-      bg.addColorStop(1, "#03080d");
-      ctx.fillStyle = bg;
-      ctx.fillRect(0, 0, W, H);
-      drawGrungeTexture(ctx, W, H, 434);
-
-      // Cinematic top art inspired by the validated Dark War mockup.
-      if (bannerImg) {
-        drawCover(ctx, bannerImg, 0, 0, W, 470, .22);
-      } else {
-        var art = ctx.createRadialGradient(590, 90, 20, 590, 120, 560);
-        art.addColorStop(0, "#1d6e93");
-        art.addColorStop(.45, "#12374d");
-        art.addColorStop(1, "#07121d");
-        ctx.fillStyle = art;
-        ctx.fillRect(0, 0, W, 470);
+      if(bannerImg){
+        ctx.save();
+        ctx.globalAlpha=.16;
+        drawCover(ctx,bannerImg,0,0,W,430,.38);
+        ctx.restore();
+        var wash=ctx.createLinearGradient(0,0,W,0);
+        wash.addColorStop(0,"rgba(5,15,28,.20)");
+        wash.addColorStop(.55,"rgba(5,17,31,.42)");
+        wash.addColorStop(1,"rgba(5,13,23,.18)");
+        ctx.fillStyle=wash;ctx.fillRect(0,0,W,430);
       }
 
-      var shade = ctx.createLinearGradient(0, 0, 0, 500);
-      shade.addColorStop(0, "rgba(1,8,14,.10)");
-      shade.addColorStop(.58, "rgba(1,8,14,.28)");
-      shade.addColorStop(1, "rgba(1,8,14,.98)");
-      ctx.fillStyle = shade;
-      ctx.fillRect(0, 0, W, 510);
+      drawHeroSilhouette(ctx);
 
-      // Keep the middle visually alive even when there are only a few launchers.
-      drawMiddlePattern(ctx, 80, 330, W - 160, Math.max(320, lowerY - 330));
+      ctx.textAlign="right";
+      ctx.fillStyle="rgba(235,247,255,.86)";
+      ctx.font="900 15px Arial, Helvetica, sans-serif";
+      ctx.fillText("SAME ALLIANCE",W-32,72);
+      ctx.fillText("BETTER TIMING",W-32,94);
+      ctx.fillStyle="#ffae39";
+      ctx.fillText("BIGGER WINS",W-32,116);
 
-      // Header copy.
-      ctx.textAlign = "left";
-      ctx.fillStyle = "#e9f4fb";
-      ctx.font = "900 42px Arial, Helvetica, sans-serif";
-      ctx.fillText("ABYX", 38, 66);
+      drawCrown(ctx,525,98,42,"#ffae39");
+      drawBrushWord(ctx,"ABYX",565,182,420,"#f5f8fb","rgba(0,0,0,.78)");
+      ctx.fillStyle="#58d7ff";
+      ctx.font="900 22px Arial Black, Arial, sans-serif";
+      ctx.textAlign="center";
+      ctx.fillText("ALLIANCE",565,211);
 
-      ctx.fillStyle = "#b7d3e6";
-      ctx.font = "800 13px Arial, Helvetica, sans-serif";
-      ctx.fillText("SURVIVE", 40, 103);
-      ctx.fillText("BUILD", 40, 121);
-      ctx.fillText("FIGHT", 40, 139);
-      ctx.fillText("TOGETHER", 40, 157);
+      drawBrushWord(ctx,"FRANKY",520,304,470,"#f5f8fb","rgba(0,0,0,.78)");
+      drawBrushWord(ctx,"TIME",715,304,235,"#ff9d2e","rgba(0,0,0,.78)");
 
-      ctx.fillStyle = "#ff67b7";
-      ctx.font = "900 italic 20px Arial, Helvetica, sans-serif";
-      ctx.fillText("SAME ALLIANCE", 34, 218);
-      ctx.fillText("BIGGER TOMORROW", 34, 244);
+      roundedRect(ctx,384,329,402,40,8);
+      ctx.fillStyle="rgba(5,14,24,.84)";ctx.fill();
+      ctx.strokeStyle="#53d6ff";ctx.lineWidth=2;ctx.stroke();
+      ctx.fillStyle="#edf8ff";ctx.font="900 20px Arial, Helvetica, sans-serif";
+      ctx.textAlign="center";ctx.fillText("WHO STARTS THE RALLIES",585,356);
 
-      ctx.textAlign = "right";
-      ctx.fillStyle = "#d7eaf7";
-      ctx.font = "900 15px Arial, Helvetica, sans-serif";
-      ctx.fillText("HUMANITY", 858, 96);
-      ctx.fillText("STILL FIGHTS", 858, 116);
+      ctx.strokeStyle="#53d6ff";ctx.lineWidth=6;ctx.lineCap="round";
+      ctx.beginPath();ctx.moveTo(378,386);ctx.lineTo(530,372);ctx.stroke();
+      ctx.strokeStyle="#ff9d2e";ctx.lineWidth=4;
+      ctx.beginPath();ctx.moveTo(646,374);ctx.lineTo(792,360);ctx.stroke();
 
-      // Validated title.
-      ctx.textAlign = "center";
-      drawFeatherCluster(ctx, W / 2, 242);
+      var panelX=34,panelW=W-68;
+      roundedRect(ctx,panelX,panelY,panelW,panelH,14);
+      var pg=ctx.createLinearGradient(panelX,panelY,panelX,panelY+panelH);
+      pg.addColorStop(0,"rgba(7,21,34,.985)");
+      pg.addColorStop(1,"rgba(4,13,23,.995)");
+      ctx.fillStyle=pg;ctx.fill();
+      ctx.strokeStyle="rgba(73,205,255,.72)";ctx.lineWidth=2;ctx.stroke();
 
-      ctx.fillStyle = "#f5ecdc";
-      fitText(ctx, "ABYX", 430, 82, 58, "900", "Georgia, 'Times New Roman', serif");
-      ctx.fillText("ABYX", W / 2, 255);
+      ctx.fillStyle="rgba(15,42,63,.98)";
+      roundedRect(ctx,panelX+2,panelY+2,panelW-4,panelHeaderH-4,12);ctx.fill();
+      ctx.strokeStyle="rgba(255,157,46,.38)";
+      ctx.beginPath();ctx.moveTo(panelX+12,panelY+panelHeaderH);ctx.lineTo(panelX+panelW-12,panelY+panelHeaderH);ctx.stroke();
 
-      ctx.fillStyle = "#d4ae65";
-      ctx.font = "800 13px Arial, Helvetica, sans-serif";
-      ctx.fillText("ALLIANCE RALLY COMMAND", W / 2, 278);
+      ctx.fillStyle="#58d7ff";ctx.font="900 24px Arial Black, Arial, sans-serif";ctx.textAlign="left";
+      ctx.fillText("#",panelX+22,panelY+38);
+      ctx.fillStyle="#f5f8fb";ctx.font="900 18px Arial, Helvetica, sans-serif";
+      ctx.fillText("PLAYER",panelX+96,panelY+37);
+      ctx.textAlign="right";ctx.fillStyle="#ffbd58";ctx.font="800 13px Arial, Helvetica, sans-serif";
+      ctx.fillText("APC  ·  RALLY SIZE  ·  FRANKY SCORE  ·  ROLE",panelX+panelW-18,panelY+36);
 
-      drawHandTitle(ctx, "FRANKY TIME !", W / 2, 347, 760);
-
-      ctx.fillStyle = "#c6e7f8";
-      ctx.font = "900 italic 28px Arial, Helvetica, sans-serif";
-      ctx.fillText("STRONGER TOGETHER", W / 2, 392);
-
-      // Launcher panel: height follows the actual number of rally launchers.
-      roundedRect(ctx, panelX, panelY, panelW, panelH, 18);
-      var panelGrad = ctx.createLinearGradient(panelX, panelY, panelX + panelW, panelY + panelH);
-      panelGrad.addColorStop(0, "rgba(5,16,26,.97)");
-      panelGrad.addColorStop(.55, "rgba(7,20,31,.94)");
-      panelGrad.addColorStop(1, "rgba(3,11,18,.98)");
-      ctx.fillStyle = panelGrad;
-      ctx.fill();
-      ctx.strokeStyle = "rgba(155,195,222,.34)";
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
-      roundedRect(ctx, panelX - 6, panelY - 14, panelW + 12, 64, 10);
-      ctx.fillStyle = "rgba(12,30,45,.98)";
-      ctx.fill();
-      ctx.strokeStyle = "rgba(153,193,220,.35)";
-      ctx.stroke();
-
-      ctx.textAlign = "left";
-      ctx.fillStyle = "#9ed5f8";
-      ctx.font = "900 27px Arial, Helvetica, sans-serif";
-      ctx.fillText("PRIORITY RALLY LAUNCHERS", panelX + 38, panelY + 28);
-      ctx.strokeStyle = "rgba(255,100,183,.72)";
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(panelX + 32, panelY + 41);
-      ctx.lineTo(panelX + 292, panelY + 37);
-      ctx.stroke();
-
-      ctx.textAlign = "right";
-      ctx.fillStyle = "#ff7bc2";
-      ctx.font = "900 italic 16px Arial, Helvetica, sans-serif";
-      ctx.fillText("MORE RALLIES", panelX + panelW - 20, panelY + 16);
-      ctx.fillText("A SAFER TOMORROW", panelX + panelW - 20, panelY + 36);
-
-      var listTop = panelY + panelHeaderH;
-
-      shown.forEach(function (item, index) {
-        drawLauncherRow(ctx, panelX + 12, listTop + index * (rowH + gap), panelW - 24, rowH, item, index);
+      var listTop=panelY+panelHeaderH+panelPad;
+      shown.forEach(function(item,index){
+        drawAnimeRow(ctx,panelX+12,listTop+index*(rowH+gap),panelW-24,rowH,item,index);
       });
 
-      // Lower cinematic strip.
-      if (bannerImg) {
-        drawCover(ctx, bannerImg, 0, lowerY, W, lowerArtH, .78);
-      } else {
-        var lower = ctx.createLinearGradient(0, lowerY, 0, lowerY + lowerArtH);
-        lower.addColorStop(0, "#142c3d");
-        lower.addColorStop(1, "#071018");
-        ctx.fillStyle = lower;
-        ctx.fillRect(0, lowerY, W, lowerArtH);
-      }
+      drawStrategyZone(ctx,W,strategyY,rallyCount);
+      drawPosterFooter(ctx,W,footerY);
 
-      var lowerShade = ctx.createLinearGradient(0, lowerY - 5, 0, lowerY + lowerArtH + 20);
-      lowerShade.addColorStop(0, "rgba(2,8,13,.22)");
-      lowerShade.addColorStop(.55, "rgba(2,8,13,.38)");
-      lowerShade.addColorStop(1, "rgba(2,8,13,.88)");
-      ctx.fillStyle = lowerShade;
-      ctx.fillRect(0, lowerY - 5, W, lowerArtH + 25);
+      ctx.fillStyle="rgba(127,166,191,.55)";
+      ctx.font="800 9px Arial, Helvetica, sans-serif";
+      ctx.textAlign="right";
+      ctx.fillText("POSTER V1.16.0",W-10,H-7);
 
-      // Lower slogans.
-      ctx.textAlign = "left";
-      ctx.fillStyle = "#d3e7f5";
-      ctx.font = "900 italic 20px Arial, Helvetica, sans-serif";
-      ctx.fillText("GOOD PEOPLE", 36, lowerY + 69);
-      ctx.fillText("STILL EXIST", 36, lowerY + 95);
-
-      ctx.textAlign = "right";
-      ctx.fillStyle = "#ff77bf";
-      ctx.fillText("UNITED", 864, lowerY + 159);
-      ctx.fillText("WE SURVIVE", 864, lowerY + 185);
-
-      // Join strip.
-      roundedRect(ctx, 245, joinY, 410, 50, 12);
-      ctx.fillStyle = "#ff64b7";
-      ctx.fill();
-      ctx.textAlign = "center";
-      ctx.fillStyle = "#101720";
-      ctx.font = "900 italic 24px Arial, Helvetica, sans-serif";
-      ctx.fillText("All the other plz join !", W / 2, joinY + 33);
-
-      // Rally count.
-      roundedRect(ctx, 82, countY, 736, 96, 14);
-      ctx.fillStyle = "rgba(10,18,27,.96)";
-      ctx.fill();
-      ctx.strokeStyle = "rgba(210,228,241,.30)";
-      ctx.lineWidth = 3;
-      ctx.stroke();
-
-      ctx.fillStyle = "#eaf6ff";
-      fitText(ctx, rallyCount + " RALLIES TO BE SENT !!", 680, 55, 34, "900");
-      ctx.fillText(rallyCount + " RALLIES TO BE SENT !!", W / 2, countY + 61);
-
-      ctx.strokeStyle = "#ff64b7";
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.moveTo(280, countY + 82);
-      ctx.lineTo(620, countY + 82);
-      ctx.stroke();
-
-      ctx.fillStyle = "#a9c7db";
-      ctx.font = "800 13px Arial, Helvetica, sans-serif";
-      ctx.fillText("ABYX · FRANKY EVENT", W / 2, footerY);
-
-      ctx.textAlign = "right";
-      ctx.fillStyle = "rgba(169,199,219,.62)";
-      ctx.font = "800 10px Arial, Helvetica, sans-serif";
-      ctx.fillText("POSTER V1.15.5", W - 18, H - 14);
-      ctx.textAlign = "center";
-
-      // Final grunge pass: scratches + worn poster edges.
-      drawGrungeTexture(ctx, W, H, 20260927);
-      drawDistressedFrame(ctx, W, H, 2026);
-
-      canvas.toBlob(function (blob) {
-        if (button) {
-          button.disabled = false;
-          button.textContent = originalText;
-        }
-        if (!blob) return;
-        showPreview(blob, rallyCount, groups.length);
-      }, "image/jpeg", 0.78);
+      canvas.toBlob(function(blob){
+        if(button){button.disabled=false;button.textContent=originalText;}
+        if(!blob)return;
+        showPreview(blob,rallyCount,groups.length);
+      },"image/jpeg",.92);
     });
   }
 
