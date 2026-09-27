@@ -1534,12 +1534,12 @@ window.FRANKY_SYNC_DATA = {
         {
           "apcNo": 1,
           "powerM": 1000.0,
-          "troopType": null
+          "troopType": "fighter"
         },
         {
           "apcNo": 2,
           "powerM": 470.0,
-          "troopType": null
+          "troopType": "shooter"
         },
         {
           "apcNo": 3,
