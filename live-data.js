@@ -1,7 +1,7 @@
 (function () {
   const API_URL = "https://script.google.com/macros/s/AKfycbxuxysWcVsk_Y6eARCGne_iH-hGUOSkAa2bkTuDLGXU9jgJ1sJPgz58Q41Cf0UcVo8svA/exec";
-  const APP_BUILD = "1.16.6";
-  const CACHE_KEY = "franky_sheet_cache_v16";
+  const APP_BUILD = "1.16.7";
+  const CACHE_KEY = "franky_sheet_cache_v17";
   const CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
   const SELECTION_KEY = "franky_selected_players_v1";
   const VEHICLE_SORT_KEY = "franky_vehicle_sort_v1";
@@ -1156,40 +1156,206 @@
     } catch (_) {}
   }
 
-  function loadLiveData(hasCache) {
-    syncState = hasCache ? "cached" : "loading";
+  function canonicalPayloadFromLiveValues(values) {
+    if (!Array.isArray(values)) throw new Error("Bad live Sheet values");
+
+    let headerIndex = -1;
+    for (let i = 0; i < values.length; i++) {
+      const row = Array.isArray(values[i]) ? values[i] : [];
+      const first = String(row[0] == null ? "" : row[0]).trim().toUpperCase();
+      const second = String(row[1] == null ? "" : row[1]).trim().toUpperCase();
+      if ((first === "PLAYER" || first === "GIOCATORE" || first === "JOUEUR") &&
+          (second.indexOf("APC") !== -1 || second.indexOf("MACCHINA") !== -1)) {
+        headerIndex = i;
+        break;
+      }
+    }
+
+    const start = headerIndex >= 0 ? headerIndex + 1 : 0;
+    const parsedPlayers = [];
+
+    for (let rowIndex = start; rowIndex < values.length; rowIndex++) {
+      const row = Array.isArray(values[rowIndex]) ? values[rowIndex] : [];
+      const name = String(row[0] == null ? "" : row[0]).trim();
+      if (!name) continue;
+
+      const upperName = name.toUpperCase();
+      if (upperName === "PLAYER" || upperName === "GIOCATORE" || upperName === "JOUEUR") continue;
+
+      const rally = parseRallySize(row[5]);
+      const troopRow = getTroopRow(values, rowIndex);
+      const apcs = [];
+
+      for (let apcNo = 1; apcNo <= 4; apcNo++) {
+        const powerM = parseSimplePower(row[apcNo]);
+        if (!Number.isFinite(powerM)) continue;
+
+        const bundled = troopTypeFromBundle(row[6], apcNo);
+        const below = troopRow ? normalizeTroopType(troopRow[apcNo]) : null;
+
+        apcs.push({
+          apcNo: apcNo,
+          powerM: powerM,
+          troopType: below || bundled
+        });
+      }
+
+      parsedPlayers.push({
+        name: name,
+        rallySize: rally ? rally.value : null,
+        rallySizePlus: rally ? rally.plus : false,
+        apcs: apcs
+      });
+    }
+
+    if (!parsedPlayers.length) throw new Error("No players in live Sheet payload");
+
+    return {
+      source: "google-sheet-live",
+      players: parsedPlayers
+    };
+  }
+
+  let liveRequestSeq = 0;
+
+  function requestGoogleSheetLive(preserveCurrentSelection) {
+    syncState = players.length ? "cached" : "loading";
     updateSyncStrip();
 
-    const old = document.getElementById("frankyCanonicalDataScript");
-    if (old && old.parentNode) old.parentNode.removeChild(old);
+    return new Promise(function(resolve, reject) {
+      const requestId = ++liveRequestSeq;
+      const callbackName = "__frankySheetLive_" + requestId;
+      const scriptId = "frankyLiveDataScript_" + requestId;
+      let settled = false;
 
-    try { delete window.FRANKY_SYNC_DATA; } catch (_) { window.FRANKY_SYNC_DATA = undefined; }
+      function cleanup() {
+        const node = document.getElementById(scriptId);
+        if (node && node.parentNode) node.parentNode.removeChild(node);
+        try { delete window[callbackName]; } catch (_) { window[callbackName] = undefined; }
+      }
 
-    const script = document.createElement("script");
-    script.id = "frankyCanonicalDataScript";
-    script.src = "./franky-data.js?_=" + Date.now();
-
-    script.onload = function() {
-      try {
-        const payload = window.FRANKY_SYNC_DATA;
-        if (!payload || !Array.isArray(payload.players)) throw new Error("Bad synced payload");
-
-        saveCache(payload);
-        applySyncedPlayerData(payload, true);
-        syncState = "ok";
-        updateSyncStrip();
-      } catch (_) {
+      function fail(error) {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeoutId);
+        cleanup();
         syncState = "error";
         updateSyncStrip();
+        reject(error || new Error("Live Google Sheet refresh failed"));
       }
-    };
 
-    script.onerror = function() {
-      syncState = "error";
-      updateSyncStrip();
-    };
+      window[callbackName] = function(payload) {
+        if (settled) return;
+        try {
+          if (!payload || payload.ok !== true || !Array.isArray(payload.values)) {
+            throw new Error("Bad Apps Script payload");
+          }
 
-    document.head.appendChild(script);
+          const canonical = canonicalPayloadFromLiveValues(payload.values);
+          saveCache(canonical);
+          applySyncedPlayerData(canonical, !!preserveCurrentSelection);
+          lastSync = payload.updatedAt || new Date().toISOString();
+          syncState = "ok";
+          updateSyncStrip();
+
+          settled = true;
+          clearTimeout(timeoutId);
+          cleanup();
+          resolve(canonical);
+        } catch (error) {
+          fail(error);
+        }
+      };
+
+      const script = document.createElement("script");
+      script.id = scriptId;
+      script.async = true;
+      script.src = API_URL +
+        "?action=data&callback=" + encodeURIComponent(callbackName) +
+        "&ts=" + Date.now();
+      script.onerror = function() {
+        fail(new Error("Apps Script unavailable"));
+      };
+
+      const timeoutId = setTimeout(function() {
+        fail(new Error("Apps Script timeout"));
+      }, 12000);
+
+      document.head.appendChild(script);
+    });
+  }
+
+  function loadSyncedFallback(preserveCurrentSelection) {
+    return new Promise(function(resolve, reject) {
+      const old = document.getElementById("frankyCanonicalDataScript");
+      if (old && old.parentNode) old.parentNode.removeChild(old);
+
+      try { delete window.FRANKY_SYNC_DATA; } catch (_) { window.FRANKY_SYNC_DATA = undefined; }
+
+      const script = document.createElement("script");
+      script.id = "frankyCanonicalDataScript";
+      script.src = "./franky-data.js?_=" + Date.now();
+
+      script.onload = function() {
+        try {
+          const payload = window.FRANKY_SYNC_DATA;
+          if (!payload || !Array.isArray(payload.players)) throw new Error("Bad synced payload");
+
+          saveCache(payload);
+          applySyncedPlayerData(payload, !!preserveCurrentSelection);
+          syncState = "ok";
+          updateSyncStrip();
+          resolve(payload);
+        } catch (error) {
+          syncState = "error";
+          updateSyncStrip();
+          reject(error);
+        }
+      };
+
+      script.onerror = function() {
+        syncState = "error";
+        updateSyncStrip();
+        reject(new Error("Synced fallback unavailable"));
+      };
+
+      document.head.appendChild(script);
+    });
+  }
+
+  function setupLivePlanRefresh() {
+    const button = document.getElementById("calculateBtn");
+    if (!button || button.dataset.liveRefreshReady === "1") return;
+
+    button.dataset.liveRefreshReady = "1";
+    button.onclick = function() {
+      if (button.dataset.refreshing === "1") return;
+
+      button.dataset.refreshing = "1";
+      button.disabled = true;
+      button.textContent = txt(
+        "Actualisation du Google Sheet…",
+        "Refreshing Google Sheet…",
+        "Aggiornamento Google Sheet…",
+        "Google Sheet wird aktualisiert…"
+      );
+
+      function openFreshPlan() {
+        button.dataset.refreshing = "0";
+        button.disabled = false;
+        renderAll();
+        openTab("results");
+      }
+
+      requestGoogleSheetLive(true).then(
+        openFreshPlan,
+        function() {
+          // If Google is temporarily unavailable, keep the latest data already
+          // displayed/cached instead of blocking rally planning.
+          openFreshPlan();
+        }
+      );
+    };
   }
 
   const stalePoster = document.getElementById("frankyPosterPreview");
@@ -1207,5 +1373,14 @@
   renderAll();
 
   const hasCache = loadCachedData();
-  loadLiveData(hasCache);
+  setupLivePlanRefresh();
+
+  // Primary source: read the Google Sheet directly on every page opening.
+  // GitHub-synced data remains only as a fallback if Apps Script is unavailable.
+  requestGoogleSheetLive(hasCache).catch(function() {
+    return loadSyncedFallback(hasCache);
+  }).catch(function() {
+    // A valid local cache may still be usable; the sync strip already reports
+    // the refresh failure without blocking the planner.
+  });
 })();
