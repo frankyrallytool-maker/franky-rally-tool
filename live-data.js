@@ -1,7 +1,7 @@
 (function () {
   const API_URL = "https://script.google.com/macros/s/AKfycbxuxysWcVsk_Y6eARCGne_iH-hGUOSkAa2bkTuDLGXU9jgJ1sJPgz58Q41Cf0UcVo8svA/exec";
-  const APP_BUILD = "1.13.0";
-  const CACHE_KEY = "franky_sheet_cache_v3";
+  const APP_BUILD = "1.14.0";
+  const CACHE_KEY = "franky_sheet_cache_v4";
   const CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
   const SELECTION_KEY = "franky_selected_players_v1";
   const VEHICLE_SORT_KEY = "franky_vehicle_sort_v1";
@@ -90,6 +90,11 @@
       ".vehicle-sort-bar select{min-width:145px;padding:7px 9px;border-radius:8px;border:1px solid #3474a9;background:#0d2135;color:#eaf6ff;font-size:11px;font-weight:900}",
       ".vehicle-rally-size{margin-top:4px;font-size:9px;color:#9ab0c7;font-weight:900;letter-spacing:.03em}",
       ".vehicle-rally-size strong{color:#45de90;font-size:10px;margin-left:4px}",
+      ".vehicle-apc-line{display:inline-flex;align-items:center;gap:5px;vertical-align:middle}",
+      ".troop-icon{width:22px;height:22px;object-fit:contain;display:inline-block;vertical-align:middle;filter:drop-shadow(0 1px 3px rgba(0,0,0,.42))}",
+      ".vehicle-name .troop-icon{width:24px;height:24px;margin-left:1px}",
+      ".vehicle-sub.has-troop{display:flex;align-items:center;gap:5px}",
+      ".vehicle-sub .troop-icon{width:20px;height:20px}",
       ".vehicle-range{font-size:10px;color:#9bdfff;font-weight:900;margin-top:3px}",
       ".empty-state{padding:18px 12px;text-align:center;border:1px dashed #27425f;border-radius:10px;color:#7890aa;font-size:10px}",
       ".pending-capacity{margin-top:8px;padding:8px 10px;border-radius:9px;background:rgba(233,178,71,.10);border:1px solid rgba(233,178,71,.25);font-size:9px;line-height:1.45;color:#e8c987}",
@@ -434,6 +439,46 @@
     return plus ? out + "+" : out;
   }
 
+
+  function normalizeTroopType(raw) {
+    let s = String(raw == null ? "" : raw).trim().toLowerCase();
+    if (!s) return null;
+    try {
+      s = s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    } catch (_) {}
+    s = s.replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
+
+    if (s === "fighter" || s === "fighters") return "fighter";
+    if (s === "shooter" || s === "shooters") return "shooter";
+    if (s === "rider" || s === "riders") return "rider";
+    if (s === "no restriction" || s === "none" || s === "unrestricted") return "none";
+    return null;
+  }
+
+  function troopIconHtml(type) {
+    const normalized = normalizeTroopType(type);
+    if (!normalized || normalized === "none") return "";
+
+    const file = normalized === "fighter"
+      ? "fighter.png"
+      : normalized === "shooter"
+        ? "shooter.png"
+        : "rider.png";
+
+    return '<img class="troop-icon" src="./assets/troops/' + file + '" alt="" aria-hidden="true">';
+  }
+
+  function getTroopRow(values, playerRowIndex) {
+    const next = Array.isArray(values[playerRowIndex + 1]) ? values[playerRowIndex + 1] : null;
+    if (!next) return null;
+    if (String(next[0] == null ? "" : next[0]).trim()) return null;
+
+    for (let col = 1; col <= 4; col++) {
+      if (normalizeTroopType(next[col])) return next;
+    }
+    return null;
+  }
+
   function isApcSheet(values) {
     if (!Array.isArray(values) || !values.length || !Array.isArray(values[0])) return false;
     const h = values[0].map(function(v){ return String(v || "").toLowerCase().trim(); });
@@ -447,10 +492,13 @@
 
   function parseApcSheet(values) {
     const result = [];
-    values.slice(1).forEach(function(row) {
-      const name = String(row[0] || "").trim();
-      if (!name) return;
 
+    for (let rowIndex = 1; rowIndex < values.length; rowIndex++) {
+      const row = Array.isArray(values[rowIndex]) ? values[rowIndex] : [];
+      const name = String(row[0] || "").trim();
+      if (!name) continue;
+
+      const troopRow = getTroopRow(values, rowIndex);
       const rallyInfo = parseRallySize(row[5]);
       const rallySize = rallyInfo ? rallyInfo.value : null;
       const rallySizePlus = rallyInfo ? rallyInfo.plus : false;
@@ -459,12 +507,14 @@
       for (let col = 1; col <= 4; col++) {
         const power = parseSimplePower(row[col]);
         if (power === null) continue;
+
         vehicles.push({
           apcNo: col,
           powerM: power,
           exact: true,
           capacity: rallySize,
-          capacityPlus: rallySizePlus
+          capacityPlus: rallySizePlus,
+          troopType: troopRow ? normalizeTroopType(troopRow[col]) : null
         });
       }
 
@@ -480,7 +530,8 @@
         capacity: rallySize,
         capacityPlus: rallySizePlus
       });
-    });
+    }
+
     return result;
   }
 
@@ -676,7 +727,7 @@
 
       return '<div class="vehicle-card">' +
         '<div class="avatar">' + silhouette() + '</div>' +
-        '<div><div class="vehicle-name">#' + (position+1) + ' · ' + escapeHtml(x.player) + ' — ' + escapeHtml(apcLabel(v)) + '</div>' +
+        '<div><div class="vehicle-name">#' + (position+1) + ' · ' + escapeHtml(x.player) + ' — <span class="vehicle-apc-line">' + escapeHtml(apcLabel(v)) + troopIconHtml(v.troopType) + '</span></div>' +
         '<div class="vehicle-range">' + escapeHtml(vehicleDisplay(v)) + '</div>' +
         '<div class="vehicle-rally-size">RALLY SIZE <strong>' + escapeHtml(rallySize) + '</strong></div>' +
         '<div class="metric-grid" style="grid-template-columns:1fr">' +
@@ -752,7 +803,7 @@
           '<div class="avatar">' + silhouette() + '</div>' +
           '<div class="result-main">' +
             '<div class="result-name">' + escapeHtml(x.player) + '</div>' +
-            '<div class="vehicle-sub">' + escapeHtml(apcLabel(v)) + '</div>' +
+            '<div class="vehicle-sub' + (troopIconHtml(v.troopType) ? ' has-troop' : '') + '">' + escapeHtml(apcLabel(v)) + troopIconHtml(v.troopType) + '</div>' +
             '<div class="result-rally-size">RALLY SIZE <strong>' + escapeHtml(rallySize) + '</strong></div>' +
             '<div class="result-score">FRANKY SCORE <strong>' + escapeHtml(scoreText) + '</strong></div>' +
           '</div>' +
