@@ -1,7 +1,7 @@
 (function () {
   const API_URL = "https://script.google.com/macros/s/AKfycbxuxysWcVsk_Y6eARCGne_iH-hGUOSkAa2bkTuDLGXU9jgJ1sJPgz58Q41Cf0UcVo8svA/exec";
-  const APP_BUILD = "1.14.8";
-  const CACHE_KEY = "franky_sheet_cache_v12";
+  const APP_BUILD = "1.14.9";
+  const CACHE_KEY = "franky_sheet_cache_v13";
   const CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
   const SELECTION_KEY = "franky_selected_players_v1";
   const VEHICLE_SORT_KEY = "franky_vehicle_sort_v1";
@@ -531,22 +531,36 @@
 
   function applyDirectTroopPayload(payload) {
     try {
-      const map = {};
       const rows = payload && payload.table && Array.isArray(payload.table.rows)
         ? payload.table.rows
         : [];
-
-      rows.forEach(function(row) {
+      const values = rows.map(function(row) {
         const cells = row && Array.isArray(row.c) ? row.c : [];
-        const name = cells[0] && cells[0].v != null ? String(cells[0].v).trim() : "";
-        const bundle = cells[1] && cells[1].v != null ? String(cells[1].v) : "";
-        if (!name || !bundle) return;
+        const out = [];
+        for (let col = 0; col < 7; col++) {
+          const cell = cells[col];
+          out[col] = cell && cell.v != null ? cell.v : "";
+        }
+        return out;
+      });
+
+      const map = {};
+
+      for (let rowIndex = 0; rowIndex < values.length; rowIndex++) {
+        const row = Array.isArray(values[rowIndex]) ? values[rowIndex] : [];
+        const name = String(row[0] || "").trim();
+        if (!name) continue;
+
+        const next = Array.isArray(values[rowIndex + 1]) ? values[rowIndex + 1] : null;
+        const troopRow = next && !String(next[0] || "").trim() ? next : null;
 
         for (let apcNo = 1; apcNo <= 4; apcNo++) {
-          const type = troopTypeFromBundle(bundle, apcNo);
+          const bundled = troopTypeFromBundle(row[6], apcNo);
+          const below = troopRow ? normalizeTroopType(troopRow[apcNo]) : null;
+          const type = below || bundled;
           if (type) map[troopIndexKey(name, apcNo)] = type;
         }
-      });
+      }
 
       directTroopTypeIndex = map;
       renderVehicles();
@@ -555,10 +569,10 @@
   }
 
   function loadDirectTroopTypes() {
-    window.google = window.google || {};
-    window.google.visualization = window.google.visualization || {};
-    window.google.visualization.Query = window.google.visualization.Query || {};
-    window.google.visualization.Query.setResponse = applyDirectTroopPayload;
+    // Use an explicit JSONP callback and read A:G including the blank-name
+    // troop row directly below each player. This mirrors the visible sheet
+    // structure and no longer depends on column G alone.
+    window.frankyTroopSheetCallback = applyDirectTroopPayload;
 
     const old = document.getElementById("frankyTroopSheetScript");
     if (old && old.parentNode) old.parentNode.removeChild(old);
@@ -569,7 +583,8 @@
       "https://docs.google.com/spreadsheets/d/1_ci0bnYNIXa_weidXqOARD4MdHXkSFNvtVHsZ98Y5KU/gviz/tq" +
       "?gid=1882891558" +
       "&headers=1" +
-      "&tq=" + encodeURIComponent("select A,G where A is not null") +
+      "&tq=" + encodeURIComponent("select A,B,C,D,E,F,G") +
+      "&tqx=" + encodeURIComponent("out:json;responseHandler:frankyTroopSheetCallback") +
       "&_=" + Date.now();
 
     document.head.appendChild(script);
