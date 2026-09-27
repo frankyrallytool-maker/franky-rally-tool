@@ -289,6 +289,16 @@
     img.src = src;
   }
 
+  function loadPosterHeader(callback) {
+    var img = new Image();
+    img.onload = function () { callback(img); };
+    img.onerror = function () {
+      // Safe fallback to the app banner if the dedicated poster artwork is unavailable.
+      loadBanner(callback);
+    };
+    img.src = "./assets/franky-anime-header.jpg?v=1";
+  }
+
   function getRallyCount() {
     var el = document.getElementById("resultCount");
     return el ? (parseInt(el.textContent, 10) || 0) : 0;
@@ -815,7 +825,7 @@
     var originalText=button?button.textContent:"GENERATE IMAGE";
     if(button){button.disabled=true;button.textContent="GENERATING…";}
 
-    loadBanner(function(bannerImg){
+    loadPosterHeader(function(headerImg){
       var maxRows=Math.min(groups.length,18);
       var shown=groups.slice(0,maxRows);
       var rowH=maxRows<=7?62:maxRows<=11?58:maxRows<=15?54:50;
@@ -837,50 +847,34 @@
         return;
       }
 
-      drawNeonCity(ctx,W,520);
+      // VALIDATED ARTWORK: use the actual ABYX / FRANKY TIME anime header.
+      // Do not redraw the girl, dog, logo or title in canvas.
+      ctx.fillStyle="#07111d";
+      ctx.fillRect(0,0,W,H);
 
-      if(bannerImg){
-        ctx.save();
-        ctx.globalAlpha=.16;
-        drawCover(ctx,bannerImg,0,0,W,430,.38);
-        ctx.restore();
-        var wash=ctx.createLinearGradient(0,0,W,0);
-        wash.addColorStop(0,"rgba(5,15,28,.20)");
-        wash.addColorStop(.55,"rgba(5,17,31,.42)");
-        wash.addColorStop(1,"rgba(5,13,23,.18)");
-        ctx.fillStyle=wash;ctx.fillRect(0,0,W,430);
+      if(headerImg){
+        drawCover(ctx,headerImg,0,0,W,500,.5);
+      }else{
+        // Last-resort fallback only.
+        drawNeonCity(ctx,W,500);
       }
 
-      drawHeroSilhouette(ctx);
+      // Soft transition into the dynamic ranking panel.
+      var heroFade=ctx.createLinearGradient(0,390,0,510);
+      heroFade.addColorStop(0,"rgba(4,12,22,0)");
+      heroFade.addColorStop(.72,"rgba(4,12,22,.42)");
+      heroFade.addColorStop(1,"rgba(4,12,22,.96)");
+      ctx.fillStyle=heroFade;
+      ctx.fillRect(0,390,W,120);
 
-      ctx.textAlign="right";
-      ctx.fillStyle="rgba(235,247,255,.86)";
-      ctx.font="900 15px Arial, Helvetica, sans-serif";
-      ctx.fillText("SAME ALLIANCE",W-32,72);
-      ctx.fillText("BETTER TIMING",W-32,94);
-      ctx.fillStyle="#ffae39";
-      ctx.fillText("BIGGER WINS",W-32,116);
-
-      drawCrown(ctx,525,98,42,"#ffae39");
-      drawBrushWord(ctx,"ABYX",565,182,420,"#f5f8fb","rgba(0,0,0,.78)");
-      ctx.fillStyle="#58d7ff";
-      ctx.font="900 22px Arial Black, Arial, sans-serif";
-      ctx.textAlign="center";
-      ctx.fillText("ALLIANCE",565,211);
-
-      drawBrushWord(ctx,"FRANKY",520,304,470,"#f5f8fb","rgba(0,0,0,.78)");
-      drawBrushWord(ctx,"TIME",715,304,235,"#ff9d2e","rgba(0,0,0,.78)");
-
-      roundedRect(ctx,384,329,402,40,8);
-      ctx.fillStyle="rgba(5,14,24,.84)";ctx.fill();
-      ctx.strokeStyle="#53d6ff";ctx.lineWidth=2;ctx.stroke();
-      ctx.fillStyle="#edf8ff";ctx.font="900 20px Arial, Helvetica, sans-serif";
-      ctx.textAlign="center";ctx.fillText("WHO STARTS THE RALLIES",585,356);
-
-      ctx.strokeStyle="#53d6ff";ctx.lineWidth=6;ctx.lineCap="round";
-      ctx.beginPath();ctx.moveTo(378,386);ctx.lineTo(530,372);ctx.stroke();
-      ctx.strokeStyle="#ff9d2e";ctx.lineWidth=4;
-      ctx.beginPath();ctx.moveTo(646,374);ctx.lineTo(792,360);ctx.stroke();
+      // Fine neon separator: keeps the generated data visually attached to the artwork.
+      var heroLine=ctx.createLinearGradient(40,0,W-40,0);
+      heroLine.addColorStop(0,"rgba(72,211,255,0)");
+      heroLine.addColorStop(.22,"rgba(72,211,255,.82)");
+      heroLine.addColorStop(.72,"rgba(255,157,46,.82)");
+      heroLine.addColorStop(1,"rgba(255,157,46,0)");
+      ctx.fillStyle=heroLine;
+      ctx.fillRect(40,486,W-80,2);
 
       var panelX=34,panelW=W-68;
       roundedRect(ctx,panelX,panelY,panelW,panelH,14);
@@ -913,7 +907,7 @@
       ctx.fillStyle="rgba(127,166,191,.55)";
       ctx.font="800 9px Arial, Helvetica, sans-serif";
       ctx.textAlign="right";
-      ctx.fillText("POSTER V1.16.0",W-10,H-7);
+      ctx.fillText("POSTER V1.16.1",W-10,H-7);
 
       canvas.toBlob(function(blob){
         if(button){button.disabled=false;button.textContent=originalText;}
