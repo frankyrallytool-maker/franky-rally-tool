@@ -29,9 +29,6 @@
   "Land of Human": {
     "1": "shooter"
   },
-  "liliabreakş": {
-    "1": "fighter"
-  },
   "Lilith": {
     "1": "fighter",
     "2": "shooter",
@@ -42,6 +39,9 @@
     "2": "rider",
     "3": "shooter",
     "4": "none"
+  },
+  "Moranax": {
+    "1": "fighter"
   },
   "NubïanQuéèn": {
     "1": "fighter",
@@ -60,5 +60,8 @@
     "2": "shooter",
     "3": "none",
     "4": "none"
+  },
+  "liliabreakş": {
+    "1": "fighter"
   }
 }
