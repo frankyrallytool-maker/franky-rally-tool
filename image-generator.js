@@ -299,6 +299,40 @@
     img.src = "./assets/franky-anime-header-master.webp?v=1";
   }
 
+  var posterTroopIcons = {};
+
+  function loadPosterTroopIcons(callback) {
+    var sources = {
+      fighter: "./assets/troops/fighter.png?v=3",
+      shooter: "./assets/troops/shooter.png?v=3",
+      rider: "./assets/troops/rider.png?v=3"
+    };
+    var keys = ["fighter","shooter","rider"];
+    var pending = keys.length;
+
+    keys.forEach(function(key) {
+      var img = new Image();
+      img.onload = function() {
+        posterTroopIcons[key] = img;
+        pending--;
+        if (!pending) callback();
+      };
+      img.onerror = function() {
+        pending--;
+        if (!pending) callback();
+      };
+      img.src = sources[key];
+    });
+  }
+
+  function loadPosterAssets(callback) {
+    loadPosterTroopIcons(function() {
+      loadPosterHeader(function(headerImg) {
+        callback(headerImg);
+      });
+    });
+  }
+
   function getRallyCount() {
     var el = document.getElementById("resultCount");
     return el ? (parseInt(el.textContent, 10) || 0) : 0;
@@ -312,6 +346,7 @@
     Array.prototype.forEach.call(cards, function (card) {
       var nameEl = card.querySelector(".result-name");
       var apcEl = card.querySelector(".vehicle-sub");
+      var troopEl = apcEl ? apcEl.querySelector(".troop-icon") : null;
       var sizeEl = card.querySelector(".result-rally-size strong");
       var scoreEl = card.querySelector(".result-score strong");
 
@@ -321,15 +356,40 @@
       var apc = String(apcEl.textContent || "").trim();
       var rallySize = sizeEl ? String(sizeEl.textContent || "").trim() : "";
       var frankyScore = scoreEl ? String(scoreEl.textContent || "").trim() : "";
+      var troopType = "";
+
+      if (troopEl) {
+        var troopSrc = String(troopEl.getAttribute("src") || troopEl.src || "").toLowerCase();
+        if (troopSrc.indexOf("fighter") !== -1) troopType = "fighter";
+        else if (troopSrc.indexOf("shooter") !== -1) troopType = "shooter";
+        else if (troopSrc.indexOf("rider") !== -1) troopType = "rider";
+      }
 
       if (!name || !apc) return;
 
       if (!byName[name]) {
-        byName[name] = { name: name, apcs: [], rallySize: rallySize, frankyScore: frankyScore };
+        byName[name] = {
+          name: name,
+          apcs: [],
+          apcEntries: [],
+          rallySize: rallySize,
+          frankyScore: frankyScore
+        };
         groups.push(byName[name]);
       }
 
-      if (byName[name].apcs.indexOf(apc) === -1) byName[name].apcs.push(apc);
+      if (byName[name].apcs.indexOf(apc) === -1) {
+        byName[name].apcs.push(apc);
+        byName[name].apcEntries.push({ label: apc, troopType: troopType });
+      } else if (troopType) {
+        for (var i=0; i<byName[name].apcEntries.length; i++) {
+          if (byName[name].apcEntries[i].label === apc && !byName[name].apcEntries[i].troopType) {
+            byName[name].apcEntries[i].troopType = troopType;
+            break;
+          }
+        }
+      }
+
       if (!byName[name].rallySize && rallySize) byName[name].rallySize = rallySize;
       if (!byName[name].frankyScore && frankyScore) byName[name].frankyScore = frankyScore;
     });
@@ -405,7 +465,7 @@
 
     var box = document.createElement("div");
     box.style.cssText =
-      "width:920px;max-width:calc(100vw - 32px)!important;margin:auto;background:#08131f;border:1px solid #244b6d;" +
+      "width:620px;max-width:calc(100vw - 32px)!important;margin:auto;background:#08131f;border:1px solid #244b6d;" +
       "border-radius:16px;padding:10px;box-shadow:0 18px 55px rgba(0,0,0,.55)";
 
     var img = document.createElement("img");
@@ -698,9 +758,59 @@
     ctx.restore();
   }
 
+  function drawPosterTroopIcon(ctx,type,cx,cy,size) {
+    var img = posterTroopIcons[type];
+    if (!img) return;
+    ctx.save();
+    ctx.shadowColor = type === "fighter" ? "rgba(52,142,255,.70)" :
+                      type === "shooter" ? "rgba(255,130,43,.62)" :
+                      "rgba(88,225,194,.62)";
+    ctx.shadowBlur = 6;
+    ctx.drawImage(img,cx-size/2,cy-size/2,size,size);
+    ctx.restore();
+  }
+
+  function drawApcTroopCell(ctx,x,y,w,h,item) {
+    ctx.fillStyle="rgba(255,255,255,.035)";
+    roundedRect(ctx,x,y+7,w,h-14,6); ctx.fill();
+
+    var entries = item.apcEntries && item.apcEntries.length
+      ? item.apcEntries.slice(0,4)
+      : (item.apcs || []).map(function(label){ return {label:label,troopType:""}; });
+
+    if (!entries.length) entries=[{label:"APC",troopType:""}];
+
+    var slotW=w/entries.length;
+    entries.forEach(function(entry,i){
+      var cx=x+slotW*(i+.5);
+      var label=String(entry.label||"APC").replace(/APC\s*/i,"APC ");
+      ctx.textAlign="center";
+      ctx.fillStyle="#edf7ff";
+      ctx.font="900 "+(h>=56?12:10)+"px Arial, Helvetica, sans-serif";
+      fitText(ctx,label,slotW-6,h>=56?12:10,8,"900","Arial, Helvetica, sans-serif");
+      ctx.fillText(label,cx,y+(h>=56?24:21));
+
+      if(entry.troopType){
+        drawPosterTroopIcon(ctx,entry.troopType,cx,y+h-(h>=56?17:15),h>=56?22:18);
+      } else {
+        ctx.fillStyle="rgba(127,155,179,.55)";
+        ctx.font="800 9px Arial, Helvetica, sans-serif";
+        ctx.fillText("—",cx,y+h-11);
+      }
+
+      if(i<entries.length-1){
+        ctx.strokeStyle="rgba(82,211,255,.12)";
+        ctx.lineWidth=1;
+        ctx.beginPath();
+        ctx.moveTo(x+slotW*(i+1),y+12);
+        ctx.lineTo(x+slotW*(i+1),y+h-12);
+        ctx.stroke();
+      }
+    });
+  }
+
   function drawAnimeRow(ctx,x,y,w,h,item,index){
     var rank=index+1;
-    var role=getRole(index);
     ctx.save();
     roundedRect(ctx,x,y,w,h,6);
     var row=ctx.createLinearGradient(x,y,x+w,y);
@@ -713,9 +823,8 @@
     drawRankMedal(ctx,x+8,y+7,52,h-14,rank);
 
     var nameX=x+72;
-    var roleW=92, scoreW=88, rallyW=116, apcW=122;
-    var roleX=x+w-roleW-10;
-    var scoreX=roleX-scoreW-8;
+    var scoreW=102, rallyW=126, apcW=180;
+    var scoreX=x+w-scoreW-10;
     var rallyX=scoreX-rallyW-8;
     var apcX=rallyX-apcW-8;
     var nameW=apcX-nameX-12;
@@ -742,10 +851,9 @@
       ctx.fillText(String(value||"—"),cx+cw/2,y+h-13);
     }
 
-    cell(apcX,apcW,"APC",cleanApcText(item.apcs.join(" / ")),"#edf7ff");
+    drawApcTroopCell(ctx,apcX,y,apcW,h,item);
     cell(rallyX,rallyW,"RALLY SIZE",item.rallySize||"—","#edf7ff");
     cell(scoreX,scoreW,"FRANKY",item.frankyScore||"—",index<3?"#f4c35d":"#63d9ff");
-    drawRoleBadge(ctx,roleX,y+10,roleW,h-20,role);
     ctx.restore();
   }
 
@@ -825,7 +933,7 @@
     var originalText=button?button.textContent:"GENERATE IMAGE";
     if(button){button.disabled=true;button.textContent="GENERATING…";}
 
-    loadPosterHeader(function(headerImg){
+    loadPosterAssets(function(headerImg){
       var maxRows=Math.min(groups.length,18);
       var shown=groups.slice(0,maxRows);
       var rowH=maxRows<=7?62:maxRows<=11?58:maxRows<=15?54:50;
@@ -896,7 +1004,7 @@
       ctx.fillStyle="#f5f8fb";ctx.font="900 18px Arial, Helvetica, sans-serif";
       ctx.fillText("PLAYER",panelX+96,panelY+37);
       ctx.textAlign="right";ctx.fillStyle="#ffbd58";ctx.font="800 13px Arial, Helvetica, sans-serif";
-      ctx.fillText("APC  ·  RALLY SIZE  ·  FRANKY SCORE  ·  ROLE",panelX+panelW-18,panelY+36);
+      ctx.fillText("APC + TROOP  ·  RALLY SIZE  ·  FRANKY SCORE",panelX+panelW-18,panelY+36);
 
       var listTop=panelY+panelHeaderH+panelPad;
       shown.forEach(function(item,index){
@@ -909,7 +1017,7 @@
       ctx.fillStyle="rgba(127,166,191,.55)";
       ctx.font="800 9px Arial, Helvetica, sans-serif";
       ctx.textAlign="right";
-      ctx.fillText("POSTER V1.16.4",W-10,H-7);
+      ctx.fillText("POSTER V1.16.5",W-10,H-7);
 
       canvas.toBlob(function(blob){
         if(button){button.disabled=false;button.textContent=originalText;}
