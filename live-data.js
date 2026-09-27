@@ -1,7 +1,7 @@
 (function () {
   const API_URL = "https://script.google.com/macros/s/AKfycbxuxysWcVsk_Y6eARCGne_iH-hGUOSkAa2bkTuDLGXU9jgJ1sJPgz58Q41Cf0UcVo8svA/exec";
-  const APP_BUILD = "1.14.7";
-  const CACHE_KEY = "franky_sheet_cache_v11";
+  const APP_BUILD = "1.14.8";
+  const CACHE_KEY = "franky_sheet_cache_v12";
   const CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
   const SELECTION_KEY = "franky_selected_players_v1";
   const VEHICLE_SORT_KEY = "franky_vehicle_sort_v1";
@@ -473,30 +473,16 @@
     const normalized = normalizeTroopType(type);
     if (!normalized || normalized === "none") return "";
 
-    const commonStart = '<svg class="troop-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">';
-    const commonEnd = '</svg>';
+    const iconMap = {
+      fighter: "./assets/troops/fighter.png?v=3",
+      shooter: "./assets/troops/shooter.png?v=3",
+      rider: "./assets/troops/rider.png?v=3"
+    };
 
-    if (normalized === "fighter") {
-      return commonStart +
-        '<circle cx="24" cy="24" r="20" fill="#2f8de4" stroke="#79c3ff" stroke-width="2"/>' +
-        '<path d="M13 14l10 4-4 6 14 13-4 4-13-14-6 4-4-10 7-7z" fill="#fff"/>' +
-        commonEnd;
-    }
+    const src = iconMap[normalized];
+    if (!src) return "";
 
-    if (normalized === "shooter") {
-      return commonStart +
-        '<circle cx="24" cy="24" r="20" fill="#7456c9" stroke="#b7a7ff" stroke-width="2"/>' +
-        '<path d="M15 12c9 6 9 18 0 24M15 12c12 2 18 10 18 12s-6 10-18 12" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>' +
-        '<path d="M15 24h20M30 19l6 5-6 5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>' +
-        commonEnd;
-    }
-
-    return commonStart +
-      '<circle cx="24" cy="24" r="20" fill="#d47a2d" stroke="#ffbf77" stroke-width="2"/>' +
-      '<circle cx="24" cy="24" r="10" fill="none" stroke="#fff" stroke-width="3"/>' +
-      '<circle cx="24" cy="24" r="3" fill="#fff"/>' +
-      '<path d="M24 11v10M24 27v10M11 24h10M27 24h10M15 15l7 7M26 26l7 7M33 15l-7 7M22 26l-7 7" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>' +
-      commonEnd;
+    return '<img class="troop-icon" src="' + src + '" alt="" aria-hidden="true">';
   }
 
   function troopIndexKey(playerName, apcNo) {
