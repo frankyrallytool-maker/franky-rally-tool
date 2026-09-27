@@ -1151,7 +1151,7 @@ window.FRANKY_SYNC_DATA = {
     },
     {
       "name": "Moranax",
-      "rallySize": 70400.0,
+      "rallySize": 68000.0,
       "rallySizePlus": false,
       "apcs": [
         {
@@ -1161,12 +1161,17 @@ window.FRANKY_SYNC_DATA = {
         },
         {
           "apcNo": 2,
-          "powerM": 301.0,
-          "troopType": null
+          "powerM": 306.0,
+          "troopType": "rider"
         },
         {
           "apcNo": 3,
-          "powerM": 176.0,
+          "powerM": 185.0,
+          "troopType": "shooter"
+        },
+        {
+          "apcNo": 4,
+          "powerM": 114.0,
           "troopType": null
         }
       ]

@@ -41,7 +41,9 @@
     "4": "none"
   },
   "Moranax": {
-    "1": "fighter"
+    "1": "fighter",
+    "2": "rider",
+    "3": "shooter"
   },
   "NubïanQuéèn": {
     "1": "fighter",
