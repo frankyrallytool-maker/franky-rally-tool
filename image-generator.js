@@ -347,6 +347,7 @@
       var nameEl = card.querySelector(".result-name");
       var apcEl = card.querySelector(".vehicle-sub");
       var troopEl = apcEl ? apcEl.querySelector(".troop-icon") : null;
+      var powerEl = card.querySelector(".result-right strong");
       var sizeEl = card.querySelector(".result-rally-size strong");
       var scoreEl = card.querySelector(".result-score strong");
 
@@ -354,6 +355,7 @@
 
       var name = String(nameEl.textContent || "").trim();
       var apc = String(apcEl.textContent || "").trim();
+      var power = powerEl ? String(powerEl.textContent || "").trim() : "";
       var rallySize = sizeEl ? String(sizeEl.textContent || "").trim() : "";
       var frankyScore = scoreEl ? String(scoreEl.textContent || "").trim() : "";
       var troopType = "";
@@ -380,11 +382,12 @@
 
       if (byName[name].apcs.indexOf(apc) === -1) {
         byName[name].apcs.push(apc);
-        byName[name].apcEntries.push({ label: apc, troopType: troopType });
+        byName[name].apcEntries.push({ label: apc, power: power, troopType: troopType });
       } else if (troopType) {
         for (var i=0; i<byName[name].apcEntries.length; i++) {
-          if (byName[name].apcEntries[i].label === apc && !byName[name].apcEntries[i].troopType) {
-            byName[name].apcEntries[i].troopType = troopType;
+          if (byName[name].apcEntries[i].label === apc) {
+            if (!byName[name].apcEntries[i].troopType) byName[name].apcEntries[i].troopType = troopType;
+            if (!byName[name].apcEntries[i].power && power) byName[name].apcEntries[i].power = power;
             break;
           }
         }
@@ -776,26 +779,36 @@
 
     var entries = item.apcEntries && item.apcEntries.length
       ? item.apcEntries.slice(0,4)
-      : (item.apcs || []).map(function(label){ return {label:label,troopType:""}; });
+      : (item.apcs || []).map(function(label){ return {label:label,power:"",troopType:""}; });
 
-    if (!entries.length) entries=[{label:"APC",troopType:""}];
+    if (!entries.length) entries=[{label:"APC",power:"",troopType:""}];
 
     var slotW=w/entries.length;
     entries.forEach(function(entry,i){
       var cx=x+slotW*(i+.5);
       var label=String(entry.label||"APC").replace(/APC\s*/i,"APC ");
+      var power=String(entry.power||"—");
       ctx.textAlign="center";
-      ctx.fillStyle="#edf7ff";
-      ctx.font="900 "+(h>=56?12:10)+"px Arial, Helvetica, sans-serif";
-      fitText(ctx,label,slotW-6,h>=56?12:10,8,"900","Arial, Helvetica, sans-serif");
-      ctx.fillText(label,cx,y+(h>=56?24:21));
 
+      // APC number
+      ctx.fillStyle="#9fb5c8";
+      ctx.font="900 "+(h>=56?10:9)+"px Arial, Helvetica, sans-serif";
+      fitText(ctx,label,slotW-6,h>=56?10:9,8,"900","Arial, Helvetica, sans-serif");
+      ctx.fillText(label,cx,y+(h>=56?17:15));
+
+      // APC power — this is the value previously lost by the poster generator.
+      ctx.fillStyle="#f4f8fb";
+      ctx.font="900 "+(h>=56?13:11)+"px Arial, Helvetica, sans-serif";
+      fitText(ctx,power,slotW-6,h>=56?13:11,9,"900","Arial, Helvetica, sans-serif");
+      ctx.fillText(power,cx,y+(h>=56?34:30));
+
+      // Troop icon directly below the APC power.
       if(entry.troopType){
-        drawPosterTroopIcon(ctx,entry.troopType,cx,y+h-(h>=56?17:15),h>=56?22:18);
+        drawPosterTroopIcon(ctx,entry.troopType,cx,y+h-(h>=56?10:9),h>=56?16:14);
       } else {
         ctx.fillStyle="rgba(127,155,179,.55)";
-        ctx.font="800 9px Arial, Helvetica, sans-serif";
-        ctx.fillText("—",cx,y+h-11);
+        ctx.font="800 8px Arial, Helvetica, sans-serif";
+        ctx.fillText("—",cx,y+h-7);
       }
 
       if(i<entries.length-1){
@@ -1017,7 +1030,7 @@
       ctx.fillStyle="rgba(127,166,191,.55)";
       ctx.font="800 9px Arial, Helvetica, sans-serif";
       ctx.textAlign="right";
-      ctx.fillText("POSTER V1.16.5",W-10,H-7);
+      ctx.fillText("POSTER V1.16.6",W-10,H-7);
 
       canvas.toBlob(function(blob){
         if(button){button.disabled=false;button.textContent=originalText;}
