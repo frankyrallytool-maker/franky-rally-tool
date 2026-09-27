@@ -635,23 +635,28 @@ window.FRANKY_SYNC_DATA = {
     },
     {
       "name": "InFam0us",
-      "rallySize": null,
+      "rallySize": 72400.0,
       "rallySizePlus": false,
       "apcs": [
         {
           "apcNo": 1,
-          "powerM": 850.0,
-          "troopType": null
+          "powerM": 846.3,
+          "troopType": "fighter"
         },
         {
           "apcNo": 2,
-          "powerM": 450.0,
-          "troopType": null
+          "powerM": 438.4,
+          "troopType": "shooter"
         },
         {
           "apcNo": 3,
-          "powerM": 250.0,
-          "troopType": null
+          "powerM": 246.5,
+          "troopType": "fighter"
+        },
+        {
+          "apcNo": 4,
+          "powerM": 180.2,
+          "troopType": "shooter"
         }
       ]
     },
