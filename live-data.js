@@ -1,10 +1,12 @@
 (function () {
   const API_URL = "https://script.google.com/macros/s/AKfycbxuxysWcVsk_Y6eARCGne_iH-hGUOSkAa2bkTuDLGXU9jgJ1sJPgz58Q41Cf0UcVo8svA/exec";
-  const APP_BUILD = "1.15.1";
-  const CACHE_KEY = "franky_sheet_cache_v15";
+  const APP_BUILD = "1.15.2";
+  const CACHE_KEY = "franky_sheet_cache_v16";
   const CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
   const SELECTION_KEY = "franky_selected_players_v1";
   const VEHICLE_SORT_KEY = "franky_vehicle_sort_v1";
+  const VEHICLE_TROOP_FILTER_KEY = "franky_vehicle_troop_filter_v1";
+  const RESULT_TROOP_FILTER_KEY = "franky_result_troop_filter_v1";
 
   const LEGACY_RANGES = [
     { label: "< 200M", estimate: 150 },
@@ -34,6 +36,21 @@
   let vehicleSortMode = (function(){
     try { return localStorage.getItem(VEHICLE_SORT_KEY) === "capacity" ? "capacity" : "power"; }
     catch (_) { return "power"; }
+  })();
+
+  function normalizeTroopFilter(value) {
+    const s = String(value || "").toLowerCase();
+    return (s === "fighter" || s === "shooter" || s === "rider" || s === "none") ? s : "all";
+  }
+
+  let vehicleTroopFilter = (function(){
+    try { return normalizeTroopFilter(localStorage.getItem(VEHICLE_TROOP_FILTER_KEY)); }
+    catch (_) { return "all"; }
+  })();
+
+  let resultTroopFilter = (function(){
+    try { return normalizeTroopFilter(localStorage.getItem(RESULT_TROOP_FILTER_KEY)); }
+    catch (_) { return "all"; }
   })();
 
   function txt(fr, en, it, de) { if (lang === "fr") return fr; if (lang === "it") return it || en; if (lang === "de") return de || en; return en; }
@@ -72,6 +89,91 @@
     });
   }
 
+  function troopFilterOptionsHtml(selected) {
+    const options = [
+      ["all", txt("Tous les types", "All types", "Tutti i tipi", "Alle Typen")],
+      ["fighter", "Fighter"],
+      ["shooter", "Shooter"],
+      ["rider", "Rider"],
+      ["none", txt("Sans restriction", "No Restriction", "Nessuna restrizione", "Keine Einschränkung")]
+    ];
+
+    return options.map(function(item) {
+      return '<option value="' + item[0] + '"' + (selected === item[0] ? ' selected' : '') + '>' + escapeHtml(item[1]) + '</option>';
+    }).join("");
+  }
+
+  function setupTroopFilters() {
+    const vehiclePanel = document.querySelector("#vehicles .panel");
+    const vehicleSortBar = vehiclePanel ? vehiclePanel.querySelector(".vehicle-sort-bar") : null;
+
+    if (vehiclePanel && vehicleSortBar && !document.getElementById("vehicleTroopFilter")) {
+      const bar = document.createElement("div");
+      bar.className = "troop-filter-bar";
+      bar.innerHTML =
+        '<label for="vehicleTroopFilter"></label>' +
+        '<select id="vehicleTroopFilter" aria-label="Troop type filter">' + troopFilterOptionsHtml(vehicleTroopFilter) + '</select>';
+      vehicleSortBar.insertAdjacentElement("afterend", bar);
+    }
+
+    const resultPanel = document.querySelector("#results .panel");
+    const resultSub = resultPanel ? resultPanel.querySelector(".panel-sub") : null;
+
+    if (resultPanel && resultSub && !document.getElementById("resultTroopFilter")) {
+      const bar = document.createElement("div");
+      bar.className = "troop-filter-bar";
+      bar.innerHTML =
+        '<label for="resultTroopFilter"></label>' +
+        '<select id="resultTroopFilter" aria-label="Troop type filter">' + troopFilterOptionsHtml(resultTroopFilter) + '</select>';
+      resultSub.insertAdjacentElement("afterend", bar);
+    }
+
+    const vehicleSelect = document.getElementById("vehicleTroopFilter");
+    if (vehicleSelect && vehicleSelect.dataset.ready !== "1") {
+      vehicleSelect.dataset.ready = "1";
+      vehicleSelect.value = vehicleTroopFilter;
+      vehicleSelect.addEventListener("change", function() {
+        vehicleTroopFilter = normalizeTroopFilter(vehicleSelect.value);
+        try { localStorage.setItem(VEHICLE_TROOP_FILTER_KEY, vehicleTroopFilter); } catch (_) {}
+        renderVehicles();
+      });
+    }
+
+    const resultSelect = document.getElementById("resultTroopFilter");
+    if (resultSelect && resultSelect.dataset.ready !== "1") {
+      resultSelect.dataset.ready = "1";
+      resultSelect.value = resultTroopFilter;
+      resultSelect.addEventListener("change", function() {
+        resultTroopFilter = normalizeTroopFilter(resultSelect.value);
+        try { localStorage.setItem(RESULT_TROOP_FILTER_KEY, resultTroopFilter); } catch (_) {}
+        renderResults();
+      });
+    }
+
+    updateTroopFilterUI();
+  }
+
+  function updateTroopFilterUI() {
+    [
+      ["vehicleTroopFilter", vehicleTroopFilter],
+      ["resultTroopFilter", resultTroopFilter]
+    ].forEach(function(pair) {
+      const select = document.getElementById(pair[0]);
+      if (!select) return;
+      const label = select.parentNode ? select.parentNode.querySelector("label") : null;
+      if (label) label.textContent = txt("Type de troupe", "Troop type", "Tipo di truppa", "Truppentyp");
+      select.innerHTML = troopFilterOptionsHtml(pair[1]);
+      select.value = pair[1];
+    });
+  }
+
+  function matchesTroopFilter(playerName, vehicle, filterValue) {
+    const filter = normalizeTroopFilter(filterValue);
+    if (filter === "all") return true;
+    const type = normalizeTroopType(resolveTroopType(playerName, vehicle));
+    return type === filter;
+  }
+
   function escapeHtml(value) {
     return String(value == null ? "" : value)
       .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
@@ -96,6 +198,9 @@
       ".vehicle-sort-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 0 10px;padding:8px 10px;border:1px solid #254664;border-radius:10px;background:#0b1724}",
       ".vehicle-sort-bar label{font-size:9px;color:#9cb2c9;font-weight:900;letter-spacing:.05em;text-transform:uppercase}",
       ".vehicle-sort-bar select{min-width:145px;padding:7px 9px;border-radius:8px;border:1px solid #3474a9;background:#0d2135;color:#eaf6ff;font-size:11px;font-weight:900}",
+      ".troop-filter-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 10px;padding:8px 10px;border:1px solid #254664;border-radius:10px;background:#0b1724}",
+      ".troop-filter-bar label{font-size:9px;color:#9cb2c9;font-weight:900;letter-spacing:.05em;text-transform:uppercase}",
+      ".troop-filter-bar select{min-width:145px;padding:7px 9px;border-radius:8px;border:1px solid #3474a9;background:#0d2135;color:#eaf6ff;font-size:11px;font-weight:900}",
       ".vehicle-rally-size{margin-top:4px;font-size:9px;color:#9ab0c7;font-weight:900;letter-spacing:.03em}",
       ".vehicle-rally-size strong{color:#45de90;font-size:10px;margin-left:4px}",
       ".vehicle-apc-line{display:inline-flex;align-items:center;gap:5px;vertical-align:middle}",
@@ -745,6 +850,13 @@
       });
     });
 
+    const filtered = all.filter(function(x) {
+      return matchesTroopFilter(x.player, x.vehicle, vehicleTroopFilter);
+    });
+
+    all.splice(0, all.length);
+    filtered.forEach(function(x) { all.push(x); });
+
     if (vehicleSortMode === "capacity") {
       all.sort(function(a,b) {
         const aCap = Number.isFinite(a.vehicle.capacity) ? a.vehicle.capacity : 0;
@@ -756,6 +868,8 @@
     } else {
       all.sort(function(a,b){ return b.vehicle.powerM - a.vehicle.powerM; });
     }
+
+    updateTroopFilterUI();
 
     const sortLabel = document.getElementById("vehicleSortLabel");
     const sortSelect = document.getElementById("vehicleSort");
@@ -778,7 +892,11 @@
 
     const el = document.getElementById("vehicleList");
     if (!all.length) {
-      el.innerHTML = '<div class="empty-state">' + txt("Sélectionne d’abord les joueurs présents.", "Select the players who are online first.", "Seleziona prima i giocatori online.", "Wähle zuerst die Spieler aus, die online sind.") + '</div>';
+      el.innerHTML = '<div class="empty-state">' +
+        (vehicleTroopFilter === "all"
+          ? txt("Sélectionne d’abord les joueurs présents.", "Select the players who are online first.", "Seleziona prima i giocatori online.", "Wähle zuerst die Spieler aus, die online sind.")
+          : txt("Aucune APC ne correspond à ce type de troupe.", "No APC matches this troop type.", "Nessuna APC corrisponde a questo tipo di truppa.", "Keine APC entspricht diesem Truppentyp.")) +
+        '</div>';
       return;
     }
 
@@ -822,6 +940,15 @@
       });
     });
 
+    const filteredApcs = apcs.filter(function(x) {
+      return matchesTroopFilter(x.player, x.vehicle, resultTroopFilter);
+    });
+
+    apcs.splice(0, apcs.length);
+    filteredApcs.forEach(function(x) { apcs.push(x); });
+
+    updateTroopFilterUI();
+
     const maxPower = Math.max.apply(null, apcs.map(function(x){
       return Number.isFinite(x.vehicle.powerM) ? x.vehicle.powerM : 0;
     }).concat([1]));
@@ -857,7 +984,11 @@
     const list = document.getElementById("resultsList");
 
     if (!arr.length) {
-      list.innerHTML = '<div class="empty-state">' + txt("Aucune APC disponible parmi les joueurs sélectionnés.", "No APC available among selected players.", "Nessuna APC disponibile tra i giocatori selezionati.", "Keine APC bei den ausgewählten Spielern verfügbar.") + '</div>';
+      list.innerHTML = '<div class="empty-state">' +
+        (resultTroopFilter === "all"
+          ? txt("Aucune APC disponible parmi les joueurs sélectionnés.", "No APC available among selected players.", "Nessuna APC disponibile tra i giocatori selezionati.", "Keine APC bei den ausgewählten Spielern verfügbar.")
+          : txt("Aucune APC ne correspond à ce type de troupe.", "No APC matches this troop type.", "Nessuna APC corrisponde a questo tipo di truppa.", "Keine APC entspricht diesem Truppentyp.")) +
+        '</div>';
     } else {
       list.innerHTML = arr.map(function(x,i) {
         const v = x.vehicle;
@@ -909,6 +1040,7 @@
 
   renderAll = function() {
     applyLang();
+    updateTroopFilterUI();
     renderPlayers();
     renderVehicles();
     renderResults();
@@ -1062,6 +1194,7 @@
   ensureRallySelectorOnTop();
   setupPlayerFilter();
   setupVehicleSort();
+  setupTroopFilters();
   addSyncStrip();
   checkForAppUpdate();
 
