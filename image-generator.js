@@ -700,6 +700,12 @@
       ctx.font = "800 13px Arial, Helvetica, sans-serif";
       ctx.fillText("ABYX · FRANKY EVENT", W / 2, footerY);
 
+      ctx.textAlign = "right";
+      ctx.fillStyle = "rgba(169,199,219,.62)";
+      ctx.font = "800 10px Arial, Helvetica, sans-serif";
+      ctx.fillText("POSTER V1.15.5", W - 18, H - 14);
+      ctx.textAlign = "center";
+
       // Final grunge pass: scratches + worn poster edges.
       drawGrungeTexture(ctx, W, H, 20260927);
       drawDistressedFrame(ctx, W, H, 2026);
