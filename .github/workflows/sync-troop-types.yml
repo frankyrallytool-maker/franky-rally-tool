@@ -1,0 +1,94 @@
+name: Sync troop types
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  push:
+    paths:
+      - ".github/workflows/sync-troop-types.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read Google Sheet and build troop-types.json
+        shell: python
+        run: |
+          import csv
+          import io
+          import json
+          import urllib.request
+
+          SHEET_ID = "1_ci0bnYNIXa_weidXqOARD4MdHXkSFNvtVHsZ98Y5KU"
+          GID = "1882891558"
+          URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv&gid={GID}"
+
+          req = urllib.request.Request(URL, headers={"User-Agent": "Franky-Rally-Tool-Sync/1.0"})
+          with urllib.request.urlopen(req, timeout=30) as response:
+              text = response.read().decode("utf-8-sig")
+
+          rows = list(csv.reader(io.StringIO(text)))
+
+          def normalize(value):
+              s = str(value or "").strip().lower()
+              if s in ("fighter", "fighters"):
+                  return "fighter"
+              if s in ("shooter", "shooters"):
+                  return "shooter"
+              if s in ("rider", "riders"):
+                  return "rider"
+              if s in ("no restriction", "none", "unrestricted"):
+                  return "none"
+              return None
+
+          result = {}
+
+          for i in range(1, len(rows)):
+              row = rows[i] + [""] * max(0, 7 - len(rows[i]))
+              name = row[0].strip()
+              if not name:
+                  continue
+
+              next_row = rows[i + 1] if i + 1 < len(rows) else []
+              next_row = next_row + [""] * max(0, 7 - len(next_row))
+
+              bundle = row[6].split("|") if len(row) > 6 else []
+              player_types = {}
+
+              for apc in range(1, 5):
+                  below = None
+                  if not next_row[0].strip():
+                      below = normalize(next_row[apc] if apc < len(next_row) else "")
+
+                  bundled = normalize(bundle[apc - 1] if apc - 1 < len(bundle) else "")
+                  troop_type = below or bundled
+
+                  if troop_type:
+                      player_types[str(apc)] = troop_type
+
+              if player_types:
+                  result[name] = player_types
+
+          with open("troop-types.json", "w", encoding="utf-8") as f:
+              json.dump(result, f, ensure_ascii=False, indent=2, sort_keys=True)
+              f.write("\n")
+
+      - name: Commit synchronized troop types
+        run: |
+          if git diff --quiet -- troop-types.json; then
+            echo "No troop type changes."
+            exit 0
+          fi
+
+          git config user.name "franky-rally-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add troop-types.json
+          git commit -m "Sync troop types from Google Sheet [skip ci]"
+          git push
