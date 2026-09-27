@@ -296,7 +296,7 @@
       // Safe fallback to the app banner if the dedicated poster artwork is unavailable.
       loadBanner(callback);
     };
-    img.src = "./assets/franky-anime-header-v2.webp?v=2";
+    img.src = "./assets/franky-anime-header-master.webp?v=1";
   }
 
   function getRallyCount() {
@@ -405,7 +405,7 @@
 
     var box = document.createElement("div");
     box.style.cssText =
-      "width:min(920px,100%);margin:auto;background:#08131f;border:1px solid #244b6d;" +
+      "width:920px;max-width:calc(100vw - 32px)!important;margin:auto;background:#08131f;border:1px solid #244b6d;" +
       "border-radius:16px;padding:10px;box-shadow:0 18px 55px rgba(0,0,0,.55)";
 
     var img = document.createElement("img");
@@ -832,7 +832,7 @@
       var gap=5;
       var panelHeaderH=58;
       var panelPad=14;
-      var panelY=574;
+      var panelY=585;
       var panelH=panelHeaderH + panelPad + maxRows*rowH + Math.max(0,maxRows-1)*gap + panelPad;
       var strategyY=panelY+panelH+20;
       var footerY=strategyY+220;
@@ -856,18 +856,18 @@
 
       if(headerImg){
         // Native 900×574 artwork: 1:1 draw, no enlargement, no crop = maximum sharpness.
-        ctx.drawImage(headerImg,0,0,900,574);
+        ctx.drawImage(headerImg,0,0,900,585);
       }else{
         // Last-resort fallback only.
-        drawNeonCity(ctx,W,574);
+        drawNeonCity(ctx,W,585);
       }
 
       // Very light transition only at the bottom edge; do not soften the artwork.
-      var heroFade=ctx.createLinearGradient(0,536,0,574);
+      var heroFade=ctx.createLinearGradient(0,547,0,585);
       heroFade.addColorStop(0,"rgba(4,12,22,0)");
       heroFade.addColorStop(1,"rgba(4,12,22,.22)");
       ctx.fillStyle=heroFade;
-      ctx.fillRect(0,536,W,38);
+      ctx.fillRect(0,547,W,38);
 
       // Fine neon separator between artwork and live data.
       var heroLine=ctx.createLinearGradient(40,0,W-40,0);
@@ -876,7 +876,7 @@
       heroLine.addColorStop(.72,"rgba(255,157,46,.82)");
       heroLine.addColorStop(1,"rgba(255,157,46,0)");
       ctx.fillStyle=heroLine;
-      ctx.fillRect(40,572,W-80,2);
+      ctx.fillRect(40,583,W-80,2);
 
       var panelX=34,panelW=W-68;
       roundedRect(ctx,panelX,panelY,panelW,panelH,14);
@@ -909,7 +909,7 @@
       ctx.fillStyle="rgba(127,166,191,.55)";
       ctx.font="800 9px Arial, Helvetica, sans-serif";
       ctx.textAlign="right";
-      ctx.fillText("POSTER V1.16.3",W-10,H-7);
+      ctx.fillText("POSTER V1.16.4",W-10,H-7);
 
       canvas.toBlob(function(blob){
         if(button){button.disabled=false;button.textContent=originalText;}
