@@ -246,7 +246,12 @@
         .then(function(r) { return r.ok ? r.json() : null; })
         .then(function(v) {
           if (!v || !v.build || v.build === APP_BUILD) return;
+
+          // Anti-loop guard: if this exact target version is already in the URL,
+          // do not reload again even if GitHub/CDN serves files out of sync briefly.
           const url = new URL(window.location.href);
+          if (url.searchParams.get("appv") === String(v.build)) return;
+
           url.searchParams.set("appv", v.build);
           window.location.replace(url.toString());
         })
