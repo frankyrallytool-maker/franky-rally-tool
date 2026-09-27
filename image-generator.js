@@ -110,50 +110,44 @@
   function drawHandTitle(ctx, text, x, y, maxWidth) {
     ctx.save();
     ctx.translate(x, y);
-    ctx.rotate(-0.035);
+    ctx.rotate(-0.012);
     ctx.textAlign = "center";
     ctx.textBaseline = "alphabetic";
 
-    var families = '"Brush Script MT","Segoe Print","Segoe Script","Comic Sans MS",cursive';
-    var size = fitText(ctx, text, maxWidth, 94, 58, "900", families);
-
-    // Rough dark shadow.
-    ctx.font = "900 " + size + "px " + families;
+    var family = '"Arial Black", Impact, "Segoe UI Black", Arial, sans-serif';
+    var size = fitText(ctx, text, maxWidth, 88, 56, "900", family);
+    ctx.font = "900 " + size + "px " + family;
     ctx.lineJoin = "round";
-    ctx.strokeStyle = "rgba(0,0,0,.55)";
-    ctx.lineWidth = 8;
-    ctx.strokeText(text, 4, 6);
 
-    // Dry-brush outer edge.
-    ctx.strokeStyle = "#ff64b7";
-    ctx.lineWidth = 3.5;
+    // Deep shadow for separation from the artwork.
+    ctx.strokeStyle = "rgba(0,0,0,.66)";
+    ctx.lineWidth = 10;
+    ctx.strokeText(text, 4, 7);
+
+    // Thin electric-pink keyline, then an ivory fill.
+    ctx.strokeStyle = "rgba(255,100,183,.92)";
+    ctx.lineWidth = 4;
     ctx.strokeText(text, 0, 0);
 
-    // Chalky hand-written fill.
-    ctx.fillStyle = "#f4f1e9";
+    ctx.fillStyle = "#f7f2e8";
     ctx.fillText(text, 0, 0);
 
-    // Imperfect pink highlight.
-    ctx.globalAlpha = .72;
-    ctx.fillStyle = "#ff73bd";
-    ctx.fillText("TIME !", size * 1.08, 3);
-    ctx.globalAlpha = 1;
-
-    // Hand-painted underline.
+    // Two rough hand-painted accents keep a little personality without hurting legibility.
     ctx.strokeStyle = "#ff64b7";
     ctx.lineCap = "round";
     ctx.lineWidth = 5;
     ctx.beginPath();
-    ctx.moveTo(-maxWidth * .29, 18);
-    ctx.quadraticCurveTo(0, 29, maxWidth * .31, 14);
+    ctx.moveTo(-maxWidth * .30, 20);
+    ctx.quadraticCurveTo(0, 31, maxWidth * .31, 17);
     ctx.stroke();
 
-    ctx.globalAlpha = .45;
+    ctx.globalAlpha = .46;
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(-maxWidth * .22, 27);
-    ctx.lineTo(maxWidth * .24, 22);
+    ctx.moveTo(-maxWidth * .18, 29);
+    ctx.lineTo(maxWidth * .24, 24);
     ctx.stroke();
+    ctx.globalAlpha = 1;
 
     ctx.restore();
   }
@@ -176,6 +170,92 @@
     // Tiny paint slash.
     ctx.fillStyle = index % 3 === 0 ? "rgba(255,100,183,.22)" : "rgba(94,215,255,.14)";
     ctx.fillRect(x + 3, y + 7, 3, Math.max(10, h - 14));
+    ctx.restore();
+  }
+
+  function drawFeather(ctx, x, y, len, width, side, fillColor, strokeColor) {
+    var dir = side >= 0 ? 1 : -1;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(dir, 1);
+
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.bezierCurveTo(len * .18, -width * .95, len * .78, -width * .72, len, 0);
+    ctx.bezierCurveTo(len * .78, width * .72, len * .18, width * .95, 0, 0);
+    ctx.closePath();
+    ctx.fillStyle = fillColor;
+    ctx.fill();
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(len * .92, 0);
+    ctx.strokeStyle = "rgba(255,239,216,.62)";
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    for (var i = 1; i <= 5; i++) {
+      var px = len * (.12 + i * .13);
+      ctx.beginPath();
+      ctx.moveTo(px, 0);
+      ctx.lineTo(px - len * .08, -width * (.16 + i * .10));
+      ctx.strokeStyle = "rgba(255,239,216,.38)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(px, 0);
+      ctx.lineTo(px - len * .08, width * (.16 + i * .10));
+      ctx.strokeStyle = "rgba(255,239,216,.22)";
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawFeatherCluster(ctx, centerX, y) {
+    var left = centerX - 165;
+    var right = centerX + 165;
+
+    drawFeather(ctx, left, y, 72, 17, -1, "#b98c42", "rgba(255,224,156,.52)");
+    drawFeather(ctx, left - 30, y + 8, 60, 14, -1, "#d3a04d", "rgba(255,224,156,.42)");
+    drawFeather(ctx, left - 55, y + 17, 50, 12, -1, "#74bada", "rgba(196,233,250,.34)");
+
+    drawFeather(ctx, right, y, 72, 17, 1, "#b98c42", "rgba(255,224,156,.52)");
+    drawFeather(ctx, right + 30, y + 8, 60, 14, 1, "#d3a04d", "rgba(255,224,156,.42)");
+    drawFeather(ctx, right + 55, y + 17, 50, 12, 1, "#74bada", "rgba(196,233,250,.34)");
+  }
+
+  function drawMiddlePattern(ctx, x, y, w, h) {
+    if (h <= 0) return;
+    ctx.save();
+
+    var glow = ctx.createRadialGradient(x + w / 2, y + h * .48, 20, x + w / 2, y + h * .48, Math.max(w, h) * .62);
+    glow.addColorStop(0, "rgba(104,203,255,.105)");
+    glow.addColorStop(.46, "rgba(224,174,85,.055)");
+    glow.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = glow;
+    ctx.fillRect(x, y, w, h);
+
+    ctx.lineWidth = 1;
+    for (var i = 0; i < 7; i++) {
+      ctx.beginPath();
+      ctx.arc(x + w / 2, y + h * .48, 95 + i * 30, -.25, Math.PI * 1.12);
+      ctx.strokeStyle = i % 2 ? "rgba(241,193,106,.045)" : "rgba(111,209,255,.045)";
+      ctx.stroke();
+    }
+
+    ctx.strokeStyle = "rgba(193,221,239,.045)";
+    for (var j = 0; j < 8; j++) {
+      var yy = y + 30 + j * Math.max(48, h / 9);
+      ctx.beginPath();
+      ctx.moveTo(x + 30, yy);
+      ctx.lineTo(x + w - 30, yy - 28);
+      ctx.stroke();
+    }
+
     ctx.restore();
   }
 
@@ -409,9 +489,29 @@
     }
 
     loadBanner(function (bannerImg) {
+      var maxRows = Math.min(groups.length, 18);
+      var shown = groups.slice(0, maxRows);
+
+      // The central launcher frame now grows/shrinks with the number of launchers.
+      var rowH = maxRows <= 5 ? 58 : maxRows <= 9 ? 54 : maxRows <= 13 ? 49 : 44;
+      var gap = maxRows >= 15 ? 4 : maxRows >= 10 ? 5 : 7;
+      var panelX = 126;
+      var panelY = 440;
+      var panelW = 648;
+      var panelHeaderH = 66;
+      var panelBottomPad = 20;
+      var listHeight = maxRows * rowH + Math.max(0, maxRows - 1) * gap;
+      var panelH = panelHeaderH + listHeight + panelBottomPad;
+
+      var lowerY = panelY + panelH + 28;
+      var lowerArtH = 235;
+      var joinY = lowerY + 157;
+      var countY = lowerY + 220;
+      var footerY = countY + 137;
+
       var canvas = document.createElement("canvas");
       canvas.width = 900;
-      canvas.height = 1600;
+      canvas.height = Math.max(980, footerY + 36);
       var ctx = canvas.getContext("2d");
 
       if (!ctx) {
@@ -423,7 +523,7 @@
       }
 
       var W = 900;
-      var H = 1600;
+      var H = canvas.height;
 
       var bg = ctx.createLinearGradient(0, 0, 0, H);
       bg.addColorStop(0, "#06131f");
@@ -452,6 +552,9 @@
       ctx.fillStyle = shade;
       ctx.fillRect(0, 0, W, 510);
 
+      // Keep the middle visually alive even when there are only a few launchers.
+      drawMiddlePattern(ctx, 80, 330, W - 160, Math.max(320, lowerY - 330));
+
       // Header copy.
       ctx.textAlign = "left";
       ctx.fillStyle = "#e9f4fb";
@@ -478,22 +581,23 @@
 
       // Validated title.
       ctx.textAlign = "center";
-      ctx.fillStyle = "#f3f8fb";
-      fitText(ctx, "ABYX", 540, 78, 58, "900");
-      ctx.fillText("ABYX", W / 2, 250);
+      drawFeatherCluster(ctx, W / 2, 242);
 
-      drawHandTitle(ctx, "FRANKY TIME !", W / 2, 337, 760);
+      ctx.fillStyle = "#f5ecdc";
+      fitText(ctx, "ABYX", 430, 82, 58, "900", "Georgia, 'Times New Roman', serif");
+      ctx.fillText("ABYX", W / 2, 255);
+
+      ctx.fillStyle = "#d4ae65";
+      ctx.font = "800 13px Arial, Helvetica, sans-serif";
+      ctx.fillText("ALLIANCE RALLY COMMAND", W / 2, 278);
+
+      drawHandTitle(ctx, "FRANKY TIME !", W / 2, 347, 760);
 
       ctx.fillStyle = "#c6e7f8";
       ctx.font = "900 italic 28px Arial, Helvetica, sans-serif";
       ctx.fillText("STRONGER TOGETHER", W / 2, 392);
 
-      // Single launcher panel, matching the approved format.
-      var panelX = 126;
-      var panelY = 430;
-      var panelW = 648;
-      var panelH = 800;
-
+      // Launcher panel: height follows the actual number of rally launchers.
       roundedRect(ctx, panelX, panelY, panelW, panelH, 18);
       var panelGrad = ctx.createLinearGradient(panelX, panelY, panelX + panelW, panelY + panelH);
       panelGrad.addColorStop(0, "rgba(5,16,26,.97)");
@@ -514,7 +618,7 @@
       ctx.textAlign = "left";
       ctx.fillStyle = "#9ed5f8";
       ctx.font = "900 27px Arial, Helvetica, sans-serif";
-      ctx.fillText("RALLIES LAUNCHERS !", panelX + 38, panelY + 28);
+      ctx.fillText("PRIORITY RALLY LAUNCHERS", panelX + 38, panelY + 28);
       ctx.strokeStyle = "rgba(255,100,183,.72)";
       ctx.lineWidth = 3;
       ctx.beginPath();
@@ -528,14 +632,7 @@
       ctx.fillText("MORE RALLIES", panelX + panelW - 20, panelY + 16);
       ctx.fillText("A SAFER TOMORROW", panelX + panelW - 20, panelY + 36);
 
-      var maxRows = Math.min(groups.length, 18);
-      var shown = groups.slice(0, maxRows);
-      var listTop = panelY + 60;
-      var listBottom = panelY + panelH - 18;
-      var availableH = listBottom - listTop;
-      var gap = maxRows >= 15 ? 4 : 6;
-      var rowH = Math.floor((availableH - gap * Math.max(0, maxRows - 1)) / Math.max(1, maxRows));
-      rowH = Math.max(35, Math.min(58, rowH));
+      var listTop = panelY + panelHeaderH;
 
       shown.forEach(function (item, index) {
         drawLauncherRow(ctx, panelX + 12, listTop + index * (rowH + gap), panelW - 24, rowH, item, index);
@@ -543,45 +640,45 @@
 
       // Lower cinematic strip.
       if (bannerImg) {
-        drawCover(ctx, bannerImg, 0, 1215, W, 235, .78);
+        drawCover(ctx, bannerImg, 0, lowerY, W, lowerArtH, .78);
       } else {
-        var lower = ctx.createLinearGradient(0, 1215, 0, 1450);
+        var lower = ctx.createLinearGradient(0, lowerY, 0, lowerY + lowerArtH);
         lower.addColorStop(0, "#142c3d");
         lower.addColorStop(1, "#071018");
         ctx.fillStyle = lower;
-        ctx.fillRect(0, 1215, W, 235);
+        ctx.fillRect(0, lowerY, W, lowerArtH);
       }
 
-      var lowerShade = ctx.createLinearGradient(0, 1210, 0, 1465);
+      var lowerShade = ctx.createLinearGradient(0, lowerY - 5, 0, lowerY + lowerArtH + 20);
       lowerShade.addColorStop(0, "rgba(2,8,13,.22)");
       lowerShade.addColorStop(.55, "rgba(2,8,13,.38)");
       lowerShade.addColorStop(1, "rgba(2,8,13,.88)");
       ctx.fillStyle = lowerShade;
-      ctx.fillRect(0, 1210, W, 260);
+      ctx.fillRect(0, lowerY - 5, W, lowerArtH + 25);
 
       // Lower slogans.
       ctx.textAlign = "left";
       ctx.fillStyle = "#d3e7f5";
       ctx.font = "900 italic 20px Arial, Helvetica, sans-serif";
-      ctx.fillText("GOOD PEOPLE", 36, 1284);
-      ctx.fillText("STILL EXIST", 36, 1310);
+      ctx.fillText("GOOD PEOPLE", 36, lowerY + 69);
+      ctx.fillText("STILL EXIST", 36, lowerY + 95);
 
       ctx.textAlign = "right";
       ctx.fillStyle = "#ff77bf";
-      ctx.fillText("UNITED", 864, 1374);
-      ctx.fillText("WE SURVIVE", 864, 1400);
+      ctx.fillText("UNITED", 864, lowerY + 159);
+      ctx.fillText("WE SURVIVE", 864, lowerY + 185);
 
       // Join strip.
-      roundedRect(ctx, 245, 1372, 410, 50, 12);
+      roundedRect(ctx, 245, joinY, 410, 50, 12);
       ctx.fillStyle = "#ff64b7";
       ctx.fill();
       ctx.textAlign = "center";
       ctx.fillStyle = "#101720";
       ctx.font = "900 italic 24px Arial, Helvetica, sans-serif";
-      ctx.fillText("All the other plz join !", W / 2, 1405);
+      ctx.fillText("All the other plz join !", W / 2, joinY + 33);
 
       // Rally count.
-      roundedRect(ctx, 82, 1435, 736, 96, 14);
+      roundedRect(ctx, 82, countY, 736, 96, 14);
       ctx.fillStyle = "rgba(10,18,27,.96)";
       ctx.fill();
       ctx.strokeStyle = "rgba(210,228,241,.30)";
@@ -590,18 +687,18 @@
 
       ctx.fillStyle = "#eaf6ff";
       fitText(ctx, rallyCount + " RALLIES TO BE SENT !!", 680, 55, 34, "900");
-      ctx.fillText(rallyCount + " RALLIES TO BE SENT !!", W / 2, 1496);
+      ctx.fillText(rallyCount + " RALLIES TO BE SENT !!", W / 2, countY + 61);
 
       ctx.strokeStyle = "#ff64b7";
       ctx.lineWidth = 4;
       ctx.beginPath();
-      ctx.moveTo(280, 1517);
-      ctx.lineTo(620, 1517);
+      ctx.moveTo(280, countY + 82);
+      ctx.lineTo(620, countY + 82);
       ctx.stroke();
 
       ctx.fillStyle = "#a9c7db";
       ctx.font = "800 13px Arial, Helvetica, sans-serif";
-      ctx.fillText("ABYX · FRANKY EVENT", W / 2, 1572);
+      ctx.fillText("ABYX · FRANKY EVENT", W / 2, footerY);
 
       // Final grunge pass: scratches + worn poster edges.
       drawGrungeTexture(ctx, W, H, 20260927);
