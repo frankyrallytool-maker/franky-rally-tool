@@ -1188,7 +1188,12 @@ window.FRANKY_SYNC_DATA = {
       "apcs": [
         {
           "apcNo": 1,
-          "powerM": 750.0,
+          "powerM": 807.0,
+          "troopType": null
+        },
+        {
+          "apcNo": 2,
+          "powerM": 266.0,
           "troopType": null
         }
       ]
@@ -1800,13 +1805,7 @@ window.FRANKY_SYNC_DATA = {
       "name": "FloydiaN",
       "rallySize": null,
       "rallySizePlus": false,
-      "apcs": [
-        {
-          "apcNo": 1,
-          "powerM": 650.0,
-          "troopType": null
-        }
-      ]
+      "apcs": []
     },
     {
       "name": "GuadaVD",
