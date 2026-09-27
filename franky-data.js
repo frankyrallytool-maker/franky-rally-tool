@@ -396,23 +396,28 @@ window.FRANKY_SYNC_DATA = {
     },
     {
       "name": "DigitalNomad",
-      "rallySize": null,
+      "rallySize": 68400.0,
       "rallySizePlus": false,
       "apcs": [
         {
           "apcNo": 1,
           "powerM": 550.0,
-          "troopType": null
+          "troopType": "rider"
         },
         {
           "apcNo": 2,
           "powerM": 230.0,
-          "troopType": null
+          "troopType": "shooter"
         },
         {
           "apcNo": 3,
           "powerM": 200.0,
-          "troopType": null
+          "troopType": "fighter"
+        },
+        {
+          "apcNo": 4,
+          "powerM": 134.0,
+          "troopType": "fighter"
         }
       ]
     },
