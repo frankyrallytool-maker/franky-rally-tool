@@ -296,7 +296,7 @@
       // Safe fallback to the app banner if the dedicated poster artwork is unavailable.
       loadBanner(callback);
     };
-    img.src = "./assets/franky-anime-header.jpg?v=1";
+    img.src = "./assets/franky-anime-header-v2.webp?v=2";
   }
 
   function getRallyCount() {
@@ -438,7 +438,7 @@
     function saveFile() {
       var a = document.createElement("a");
       a.href = url;
-      a.download = "ABYX_FRANKY_TIME_" + count + "_RALLIES.jpg";
+      a.download = "ABYX_FRANKY_TIME_" + count + "_RALLIES.png";
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -448,7 +448,7 @@
 
     share.addEventListener("click", function () {
       try {
-        var file = new File([blob], "ABYX_FRANKY_TIME_" + count + "_RALLIES.jpg", { type: "image/jpeg" });
+        var file = new File([blob], "ABYX_FRANKY_TIME_" + count + "_RALLIES.png", { type: "image/png" });
         if (navigator.share && (!navigator.canShare || navigator.canShare({ files: [file] }))) {
           navigator.share({
             title: "ABYX FRANKY TIME!",
@@ -832,7 +832,7 @@
       var gap=5;
       var panelHeaderH=58;
       var panelPad=14;
-      var panelY=488;
+      var panelY=574;
       var panelH=panelHeaderH + panelPad + maxRows*rowH + Math.max(0,maxRows-1)*gap + panelPad;
       var strategyY=panelY+panelH+20;
       var footerY=strategyY+220;
@@ -846,6 +846,8 @@
         if(button){button.disabled=false;button.textContent=originalText;}
         return;
       }
+      ctx.imageSmoothingEnabled=true;
+      ctx.imageSmoothingQuality="high";
 
       // VALIDATED ARTWORK: use the actual ABYX / FRANKY TIME anime header.
       // Do not redraw the girl, dog, logo or title in canvas.
@@ -853,28 +855,28 @@
       ctx.fillRect(0,0,W,H);
 
       if(headerImg){
-        drawCover(ctx,headerImg,0,0,W,500,.5);
+        // Native 900×574 artwork: 1:1 draw, no enlargement, no crop = maximum sharpness.
+        ctx.drawImage(headerImg,0,0,900,574);
       }else{
         // Last-resort fallback only.
-        drawNeonCity(ctx,W,500);
+        drawNeonCity(ctx,W,574);
       }
 
-      // Soft transition into the dynamic ranking panel.
-      var heroFade=ctx.createLinearGradient(0,390,0,510);
+      // Very light transition only at the bottom edge; do not soften the artwork.
+      var heroFade=ctx.createLinearGradient(0,536,0,574);
       heroFade.addColorStop(0,"rgba(4,12,22,0)");
-      heroFade.addColorStop(.72,"rgba(4,12,22,.42)");
-      heroFade.addColorStop(1,"rgba(4,12,22,.96)");
+      heroFade.addColorStop(1,"rgba(4,12,22,.22)");
       ctx.fillStyle=heroFade;
-      ctx.fillRect(0,390,W,120);
+      ctx.fillRect(0,536,W,38);
 
-      // Fine neon separator: keeps the generated data visually attached to the artwork.
+      // Fine neon separator between artwork and live data.
       var heroLine=ctx.createLinearGradient(40,0,W-40,0);
       heroLine.addColorStop(0,"rgba(72,211,255,0)");
       heroLine.addColorStop(.22,"rgba(72,211,255,.82)");
       heroLine.addColorStop(.72,"rgba(255,157,46,.82)");
       heroLine.addColorStop(1,"rgba(255,157,46,0)");
       ctx.fillStyle=heroLine;
-      ctx.fillRect(40,486,W-80,2);
+      ctx.fillRect(40,572,W-80,2);
 
       var panelX=34,panelW=W-68;
       roundedRect(ctx,panelX,panelY,panelW,panelH,14);
@@ -907,13 +909,13 @@
       ctx.fillStyle="rgba(127,166,191,.55)";
       ctx.font="800 9px Arial, Helvetica, sans-serif";
       ctx.textAlign="right";
-      ctx.fillText("POSTER V1.16.1",W-10,H-7);
+      ctx.fillText("POSTER V1.16.2",W-10,H-7);
 
       canvas.toBlob(function(blob){
         if(button){button.disabled=false;button.textContent=originalText;}
         if(!blob)return;
         showPreview(blob,rallyCount,groups.length);
-      },"image/jpeg",.92);
+      },"image/png");
     });
   }
 
