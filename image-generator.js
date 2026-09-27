@@ -405,7 +405,7 @@
 
     var box = document.createElement("div");
     box.style.cssText =
-      "width:min(430px,100%);margin:auto;background:#08131f;border:1px solid #244b6d;" +
+      "width:min(920px,100%);margin:auto;background:#08131f;border:1px solid #244b6d;" +
       "border-radius:16px;padding:10px;box-shadow:0 18px 55px rgba(0,0,0,.55)";
 
     var img = document.createElement("img");
@@ -909,7 +909,7 @@
       ctx.fillStyle="rgba(127,166,191,.55)";
       ctx.font="800 9px Arial, Helvetica, sans-serif";
       ctx.textAlign="right";
-      ctx.fillText("POSTER V1.16.2",W-10,H-7);
+      ctx.fillText("POSTER V1.16.3",W-10,H-7);
 
       canvas.toBlob(function(blob){
         if(button){button.disabled=false;button.textContent=originalText;}
