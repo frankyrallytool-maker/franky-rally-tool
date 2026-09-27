@@ -1782,66 +1782,6 @@ window.FRANKY_SYNC_DATA = {
           "troopType": null
         }
       ]
-    },
-    {
-      "name": "Buffy420",
-      "rallySize": null,
-      "rallySizePlus": false,
-      "apcs": []
-    },
-    {
-      "name": "βunnı",
-      "rallySize": null,
-      "rallySizePlus": false,
-      "apcs": []
-    },
-    {
-      "name": "elewator",
-      "rallySize": null,
-      "rallySizePlus": false,
-      "apcs": []
-    },
-    {
-      "name": "FloydiaN",
-      "rallySize": null,
-      "rallySizePlus": false,
-      "apcs": []
-    },
-    {
-      "name": "GuadaVD",
-      "rallySize": null,
-      "rallySizePlus": false,
-      "apcs": []
-    },
-    {
-      "name": "Re De Roma",
-      "rallySize": null,
-      "rallySizePlus": false,
-      "apcs": []
-    },
-    {
-      "name": "sabonaut",
-      "rallySize": null,
-      "rallySizePlus": false,
-      "apcs": []
-    },
-    {
-      "name": "Shadeborn",
-      "rallySize": null,
-      "rallySizePlus": false,
-      "apcs": []
-    },
-    {
-      "name": "sweety2all",
-      "rallySize": null,
-      "rallySizePlus": false,
-      "apcs": []
-    },
-    {
-      "name": "Vickylongui",
-      "rallySize": null,
-      "rallySizePlus": false,
-      "apcs": []
     }
   ]
 };
