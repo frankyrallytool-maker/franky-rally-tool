@@ -1,7 +1,7 @@
 (function () {
   const API_URL = "https://script.google.com/macros/s/AKfycbxuxysWcVsk_Y6eARCGne_iH-hGUOSkAa2bkTuDLGXU9jgJ1sJPgz58Q41Cf0UcVo8svA/exec";
-  const APP_BUILD = "1.15.0";
-  const CACHE_KEY = "franky_sheet_cache_v14";
+  const APP_BUILD = "1.15.1";
+  const CACHE_KEY = "franky_sheet_cache_v15";
   const CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
   const SELECTION_KEY = "franky_selected_players_v1";
   const VEHICLE_SORT_KEY = "franky_vehicle_sort_v1";
@@ -529,40 +529,8 @@
     return troopTypeIndex[key] || null;
   }
 
-  function applySyncedTroopTypes(data) {
-    try {
-      const map = {};
-      if (data && typeof data === "object") {
-        Object.keys(data).forEach(function(playerName) {
-          const types = data[playerName] || {};
-          for (let apcNo = 1; apcNo <= 4; apcNo++) {
-            const type = normalizeTroopType(types[String(apcNo)]);
-            if (type) map[troopIndexKey(playerName, apcNo)] = type;
-          }
-        });
-      }
-
-      directTroopTypeIndex = map;
-      renderVehicles();
-      renderResults();
-    } catch (_) {}
-  }
-
   function loadDirectTroopTypes() {
-    // V1.15.0: troop types are synced server-side from the public Google Sheet
-    // into a same-origin JSON file. This avoids fragile cross-origin GViz
-    // requests in the browser.
-    const url = "./troop-types.json?_=" + Date.now();
-
-    fetch(url, { cache: "no-store" })
-      .then(function(response) {
-        if (!response.ok) throw new Error("Troop type sync unavailable");
-        return response.json();
-      })
-      .then(applySyncedTroopTypes)
-      .catch(function() {
-        // Keep the values already available from the main feed / static fallback.
-      });
+    // V1.15.1: troop types are carried directly by the canonical synced APC data.
   }
 
   function getTroopRow(values, playerRowIndex) {
@@ -956,21 +924,71 @@
     return map;
   }
 
-  function applyValues(values, updatedAt, preserveCurrentSelection) {
-    buildTroopTypeIndex(values);
+  function applySyncedPlayerData(payload, preserveCurrentSelection) {
+    if (!payload || !Array.isArray(payload.players)) throw new Error("Bad synced payload");
+
     const current = preserveCurrentSelection ? selectedNames() : null;
     const stored = loadStoredSelection();
     const keep = current !== null ? current : (stored || {});
-    const parsed = parseSheet(values);
-    parsed.forEach(function(p) { p.selected = !!keep[p.name]; });
+    const parsed = [];
+    const troopMap = {};
+
+    payload.players.forEach(function(raw) {
+      if (!raw) return;
+      const name = String(raw.name || "").trim();
+      if (!name) return;
+
+      const rallySize = Number.isFinite(Number(raw.rallySize)) ? Number(raw.rallySize) : null;
+      const rallySizePlus = !!raw.rallySizePlus;
+      const vehicles = [];
+
+      (Array.isArray(raw.apcs) ? raw.apcs : []).forEach(function(apc) {
+        const apcNo = Number(apc && apc.apcNo);
+        const powerM = Number(apc && apc.powerM);
+
+        // Hard safety rule: Franky only supports APC 1 to APC 4.
+        if (!Number.isInteger(apcNo) || apcNo < 1 || apcNo > 4) return;
+        if (!Number.isFinite(powerM)) return;
+
+        const troopType = normalizeTroopType(apc.troopType);
+
+        vehicles.push({
+          apcNo: apcNo,
+          powerM: powerM,
+          exact: true,
+          capacity: rallySize,
+          capacityPlus: rallySizePlus,
+          troopType: troopType
+        });
+
+        if (troopType) troopMap[troopIndexKey(name, apcNo)] = troopType;
+      });
+
+      vehicles.sort(function(a,b){ return a.apcNo - b.apcNo; });
+
+      const bestPower = vehicles.reduce(function(max, v) {
+        return Math.max(max, v.powerM);
+      }, 0);
+
+      parsed.push({
+        name: name,
+        selected: !!keep[name],
+        vehicles: vehicles,
+        power: bestPower,
+        capacity: rallySize,
+        capacityPlus: rallySizePlus
+      });
+    });
+
+    directTroopTypeIndex = troopMap;
+    sourceSchema = "apc";
 
     players.splice(0, players.length);
     parsed.forEach(function(p) { players.push(p); });
 
     saveStoredSelection();
-    lastSync = updatedAt || new Date().toISOString();
+    lastSync = new Date().toISOString();
     renderAll();
-    loadDirectTroopTypes();
   }
 
   function loadCachedData() {
@@ -979,10 +997,11 @@
       if (!raw) return false;
 
       const cached = JSON.parse(raw);
-      if (!cached || !Array.isArray(cached.values) || !cached.savedAt) return false;
+      if (!cached || !cached.payload || !Array.isArray(cached.payload.players) || !cached.savedAt) return false;
       if ((Date.now() - cached.savedAt) > CACHE_MAX_AGE) return false;
 
-      applyValues(cached.values, cached.updatedAt || cached.savedAt, false);
+      applySyncedPlayerData(cached.payload, false);
+      lastSync = cached.savedAt;
       syncState = "cached";
       updateSyncStrip();
       return true;
@@ -994,8 +1013,7 @@
   function saveCache(payload) {
     try {
       localStorage.setItem(CACHE_KEY, JSON.stringify({
-        values: payload.values,
-        updatedAt: payload.updatedAt || new Date().toISOString(),
+        payload: payload,
         savedAt: Date.now()
       }));
     } catch (_) {}
@@ -1005,36 +1023,35 @@
     syncState = hasCache ? "cached" : "loading";
     updateSyncStrip();
 
-    const callbackName = "__frankySheetDataLoaded";
-    const old = document.getElementById("frankyDataScript");
-    if (old) old.remove();
+    const old = document.getElementById("frankyCanonicalDataScript");
+    if (old && old.parentNode) old.parentNode.removeChild(old);
 
-    window[callbackName] = function(payload) {
+    try { delete window.FRANKY_SYNC_DATA; } catch (_) { window.FRANKY_SYNC_DATA = undefined; }
+
+    const script = document.createElement("script");
+    script.id = "frankyCanonicalDataScript";
+    script.src = "./franky-data.js?_=" + Date.now();
+
+    script.onload = function() {
       try {
-        if (!payload || payload.ok !== true || !Array.isArray(payload.values)) {
-          throw new Error("Bad payload");
-        }
+        const payload = window.FRANKY_SYNC_DATA;
+        if (!payload || !Array.isArray(payload.players)) throw new Error("Bad synced payload");
 
         saveCache(payload);
-        applyValues(payload.values, payload.updatedAt, true);
+        applySyncedPlayerData(payload, true);
         syncState = "ok";
         updateSyncStrip();
-      } catch (err) {
+      } catch (_) {
         syncState = "error";
         updateSyncStrip();
-      } finally {
-        try { delete window[callbackName]; } catch (_) {}
       }
     };
 
-    const script = document.createElement("script");
-    script.id = "frankyDataScript";
-    const bucket = Math.floor(Date.now() / 30000);
-    script.src = API_URL + "?action=data&callback=" + encodeURIComponent(callbackName) + "&v=" + bucket + "&_=" + Date.now();
     script.onerror = function() {
       syncState = "error";
       updateSyncStrip();
     };
+
     document.head.appendChild(script);
   }
 
@@ -1051,7 +1068,6 @@
   players.splice(0, players.length);
   renderAll();
 
-  loadDirectTroopTypes();
   const hasCache = loadCachedData();
   loadLiveData(hasCache);
 })();

@@ -1,4 +1,4 @@
-name: Sync troop types
+name: Sync Franky data
 
 on:
   schedule:
@@ -18,7 +18,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Read Google Sheet and build troop-types.json
+      - name: Build canonical Franky data from Google Sheet
         shell: python
         run: |
           import csv
@@ -30,13 +30,13 @@ jobs:
           GID = "1882891558"
           URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv&gid={GID}"
 
-          req = urllib.request.Request(URL, headers={"User-Agent": "Franky-Rally-Tool-Sync/1.0"})
+          req = urllib.request.Request(URL, headers={"User-Agent": "Franky-Rally-Tool-Sync/1.15.1"})
           with urllib.request.urlopen(req, timeout=30) as response:
               text = response.read().decode("utf-8-sig")
 
           rows = list(csv.reader(io.StringIO(text)))
 
-          def normalize(value):
+          def normalize_type(value):
               s = str(value or "").strip().lower()
               if s in ("fighter", "fighters"):
                   return "fighter"
@@ -48,7 +48,34 @@ jobs:
                   return "none"
               return None
 
-          result = {}
+          def parse_power(value):
+              s = str(value or "").strip().replace(" ", "").replace(",", ".")
+              if not s:
+                  return None
+              multiplier = 1
+              if s.lower().endswith("g"):
+                  multiplier = 1000
+                  s = s[:-1]
+              elif s.lower().endswith("m"):
+                  s = s[:-1]
+              try:
+                  return float(s) * multiplier
+              except ValueError:
+                  return None
+
+          def parse_rally(value):
+              s = str(value or "").strip().replace(" ", "")
+              if not s:
+                  return None, False
+              plus = "+" in s
+              s = s.replace("+", "").replace(",", ".")
+              try:
+                  return float(s), plus
+              except ValueError:
+                  return None, plus
+
+          players = []
+          troop_map = {}
 
           for i in range(1, len(rows)):
               row = rows[i] + [""] * max(0, 7 - len(rows[i]))
@@ -58,37 +85,82 @@ jobs:
 
               next_row = rows[i + 1] if i + 1 < len(rows) else []
               next_row = next_row + [""] * max(0, 7 - len(next_row))
-
+              below_is_troop_row = not next_row[0].strip()
               bundle = row[6].split("|") if len(row) > 6 else []
-              player_types = {}
+              rally_size, rally_plus = parse_rally(row[5])
 
-              for apc in range(1, 5):
-                  below = None
-                  if not next_row[0].strip():
-                      below = normalize(next_row[apc] if apc < len(next_row) else "")
+              apcs = []
+              types = {}
 
-                  bundled = normalize(bundle[apc - 1] if apc - 1 < len(bundle) else "")
+              for apc_no in range(1, 5):
+                  power = parse_power(row[apc_no] if apc_no < len(row) else "")
+                  below = normalize_type(next_row[apc_no]) if below_is_troop_row and apc_no < len(next_row) else None
+                  bundled = normalize_type(bundle[apc_no - 1]) if apc_no - 1 < len(bundle) else None
                   troop_type = below or bundled
 
                   if troop_type:
-                      player_types[str(apc)] = troop_type
+                      types[str(apc_no)] = troop_type
 
-              if player_types:
-                  result[name] = player_types
+                  if power is not None:
+                      apcs.append({
+                          "apcNo": apc_no,
+                          "powerM": power,
+                          "troopType": troop_type
+                      })
+
+              players.append({
+                  "name": name,
+                  "rallySize": rally_size,
+                  "rallySizePlus": rally_plus,
+                  "apcs": apcs
+              })
+
+              if types:
+                  troop_map[name] = types
+
+          payload = {"source": "google-sheet", "players": players}
+
+          with open("franky-data.js", "w", encoding="utf-8") as f:
+              f.write("window.FRANKY_SYNC_DATA = ")
+              json.dump(payload, f, ensure_ascii=False, indent=2)
+              f.write(";\n")
 
           with open("troop-types.json", "w", encoding="utf-8") as f:
-              json.dump(result, f, ensure_ascii=False, indent=2, sort_keys=True)
+              json.dump(troop_map, f, ensure_ascii=False, indent=2, sort_keys=True)
               f.write("\n")
 
-      - name: Commit synchronized troop types
+      - name: Validate canonical data
+        shell: python
         run: |
-          if git diff --quiet -- troop-types.json; then
-            echo "No troop type changes."
+          import json
+          import re
+
+          text = open("franky-data.js", encoding="utf-8").read()
+          match = re.match(r"^window\.FRANKY_SYNC_DATA\s*=\s*(.*);\s*$", text, re.S)
+          if not match:
+              raise SystemExit("Invalid franky-data.js wrapper")
+
+          data = json.loads(match.group(1))
+          for player in data.get("players", []):
+              apcs = player.get("apcs", [])
+              if len(apcs) > 4:
+                  raise SystemExit(f"More than 4 APCs for {player.get('name')}")
+              seen = set()
+              for apc in apcs:
+                  no = int(apc["apcNo"])
+                  if no < 1 or no > 4 or no in seen:
+                      raise SystemExit(f"Invalid APC numbering for {player.get('name')}")
+                  seen.add(no)
+
+      - name: Commit synchronized data
+        run: |
+          if git diff --quiet -- franky-data.js troop-types.json; then
+            echo "No Franky data changes."
             exit 0
           fi
 
           git config user.name "franky-rally-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add troop-types.json
-          git commit -m "Sync troop types from Google Sheet [skip ci]"
+          git add franky-data.js troop-types.json
+          git commit -m "Sync canonical Franky data [skip ci]"
           git push
