@@ -1,7 +1,7 @@
 (function () {
   const API_URL = "https://script.google.com/macros/s/AKfycbxuxysWcVsk_Y6eARCGne_iH-hGUOSkAa2bkTuDLGXU9jgJ1sJPgz58Q41Cf0UcVo8svA/exec";
-  const APP_BUILD = "1.14.1";
-  const CACHE_KEY = "franky_sheet_cache_v5";
+  const APP_BUILD = "1.14.2";
+  const CACHE_KEY = "franky_sheet_cache_v6";
   const CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
   const SELECTION_KEY = "franky_selected_players_v1";
   const VEHICLE_SORT_KEY = "franky_vehicle_sort_v1";
@@ -486,10 +486,11 @@
       if (!name) continue;
 
       const troopRow = getTroopRow(values, rowIndex);
-      if (!troopRow) continue;
 
       for (let col = 1; col <= 4; col++) {
-        const type = normalizeTroopType(troopRow[col]);
+        const mirrored = normalizeTroopType(row[col + 5]);
+        const below = troopRow ? normalizeTroopType(troopRow[col]) : null;
+        const type = mirrored || below;
         if (type) map[troopIndexKey(name, col)] = type;
       }
     }
@@ -550,7 +551,7 @@
           exact: true,
           capacity: rallySize,
           capacityPlus: rallySizePlus,
-          troopType: troopRow ? normalizeTroopType(troopRow[col]) : null
+          troopType: normalizeTroopType(row[col + 5]) || (troopRow ? normalizeTroopType(troopRow[col]) : null)
         });
       }
 
