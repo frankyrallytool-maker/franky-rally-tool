@@ -79,33 +79,6 @@ window.FRANKY_SYNC_DATA = {
       ]
     },
     {
-      "name": "• Alexandra •",
-      "rallySize": 79200.0,
-      "rallySizePlus": false,
-      "apcs": [
-        {
-          "apcNo": 1,
-          "powerM": 1530.0,
-          "troopType": "fighter"
-        },
-        {
-          "apcNo": 2,
-          "powerM": 554.0,
-          "troopType": "shooter"
-        },
-        {
-          "apcNo": 3,
-          "powerM": 250.0,
-          "troopType": "fighter"
-        },
-        {
-          "apcNo": 4,
-          "powerM": 200.0,
-          "troopType": "fighter"
-        }
-      ]
-    },
-    {
       "name": "Arita3",
       "rallySize": null,
       "rallySizePlus": false,
@@ -1743,18 +1716,6 @@ window.FRANKY_SYNC_DATA = {
       "rallySize": null,
       "rallySizePlus": false,
       "apcs": []
-    },
-    {
-      "name": "Vessel",
-      "rallySize": null,
-      "rallySizePlus": false,
-      "apcs": [
-        {
-          "apcNo": 1,
-          "powerM": 800.56,
-          "troopType": null
-        }
-      ]
     },
     {
       "name": "wabbajack",
