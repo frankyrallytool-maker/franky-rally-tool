@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07111d">
+<title>FRANKY TOOL — Message Builder</title>
+<style>
+:root{--bg:#050911;--shell:#08111d;--card:#0d1826;--card2:#101d2d;--line:#203650;--text:#f4f8ff;--muted:#8da2bc;--blue:#1495ff;--cyan:#5ed7ff;--green:#35d785;--gold:#e9b247;--pink:#ff4fd8;--danger:#ff5e73}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Inter,Segoe UI,Arial,sans-serif}
+body{background:radial-gradient(circle at 20% -15%,rgba(20,149,255,.17),transparent 35%),linear-gradient(180deg,#050911,#07101b 60%,#04070c);min-height:100vh}
+button,input,select,textarea{font:inherit}
+.header{min-height:74px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;background:linear-gradient(180deg,#091522,#07111c);border-bottom:1px solid #14273c;position:sticky;top:0;z-index:20}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}.logo{width:45px;height:45px;border-radius:50%;display:grid;place-items:center;background:#0b1d31;border:1px solid #2a608c}.logo svg{width:28px;height:28px}
+.brand-title{font-size:15px;font-weight:950}.accent{color:var(--cyan)}.brand-sub{font-size:9px;color:#7188a2;margin-top:3px}
+.menu-btn{border:0;background:transparent;color:#a9b9cc;font-size:22px;padding:8px 10px;border-radius:8px;cursor:pointer}
+.drawer{position:fixed;inset:0;z-index:50;pointer-events:none}.drawer.open{pointer-events:auto}.shade{position:absolute;inset:0;background:rgba(0,0,0,.58);opacity:0;transition:.2s}.drawer.open .shade{opacity:1}.panel{position:absolute;top:0;right:0;width:min(86vw,340px);height:100%;background:#08111d;border-left:1px solid #203650;transform:translateX(100%);transition:.22s;padding:18px}.drawer.open .panel{transform:translateX(0)}
+.drawer h2{font-size:14px;margin:8px 0 14px;color:#cfeaff}.navlink{display:block;text-decoration:none;color:#dce9f7;background:#0d1826;border:1px solid #203650;border-radius:10px;padding:13px 14px;margin-bottom:9px;font-weight:850}.navlink.active{border-color:#1d83d3;background:linear-gradient(180deg,rgba(20,149,255,.22),rgba(20,149,255,.08));color:#fff}
+.wrap{max-width:1220px;margin:0 auto;padding:18px 14px 34px}.intro h1{font-size:24px;margin:0 0 5px}.intro p{color:var(--muted);font-size:12px;line-height:1.5;margin:0 0 15px}
+.toolbar{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px}.tool{border:1px solid #2d4967;background:#101e2d;color:#fff;border-radius:9px;min-height:40px;padding:8px 11px;font-weight:850;cursor:pointer}.tool:hover{border-color:#3f78a8}.tool.active{background:#125fa8;border-color:#38a8ff}.color-wrap{display:flex;align-items:center;gap:7px}.color-input{width:42px;height:40px;border:1px solid #2d4967;border-radius:9px;padding:2px;background:#101e2d}.size-select{min-height:40px;border:1px solid #2d4967;background:#101e2d;color:#fff;border-radius:9px;padding:0 10px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.card{background:linear-gradient(180deg,#0d1826,#0a1421);border:1px solid #203650;border-radius:14px;overflow:hidden}.card-head{padding:11px 13px;border-bottom:1px solid #203650;display:flex;justify-content:space-between;gap:10px;align-items:center}.card-head strong{font-size:13px}.counter{font-size:11px;color:#8da2bc}.counter.warn{color:#e9b247}.counter.danger{color:#ff5e73}
+.editor{min-height:360px;padding:16px;outline:none;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.55;background:#0a111b;font-size:16px}.editor:empty:before{content:"Write your alliance message here…";color:#63768d}
+.preview{min-height:360px;padding:18px;background:#1a232d;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5;font-size:16px}.code{width:100%;min-height:180px;border:0;outline:none;resize:vertical;background:#070c13;color:#dce9f7;padding:14px;font:13px/1.45 Consolas,monospace}
+.actions{display:flex;flex-wrap:wrap;gap:8px;padding:12px}.primary,.secondary{border-radius:9px;padding:10px 14px;font-weight:900;cursor:pointer}.primary{border:0;background:linear-gradient(180deg,#2ba9ff,#0874df);color:#fff}.secondary{border:1px solid #28455f;background:#0c1724;color:#d9e4f0}.status{padding:0 12px 12px;font-size:11px;color:#35d785;min-height:16px}
+.note{margin-top:12px;font-size:11px;color:#7188a2;line-height:1.5}.preset{border:1px solid #2d4967;background:#0b1623;color:#dce9f7;border-radius:999px;padding:7px 10px;font-size:11px;font-weight:850;cursor:pointer}
+@media(max-width:820px){.grid{grid-template-columns:1fr}.editor,.preview{min-height:300px}.wrap{padding:12px 10px 28px}}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="brand">
+    <div class="logo"><svg viewBox="0 0 64 64" fill="none"><circle cx="32" cy="20" r="11" fill="#63D7FF"/><path d="M13 53c2-13 10-19 19-19s17 6 19 19" fill="#63D7FF"/></svg></div>
+    <div><div class="brand-title">FRANKY <span class="accent">TOOLS</span></div><div class="brand-sub">Dark War Survival companion</div></div>
+  </div>
+  <button class="menu-btn" id="menuBtn" aria-label="Open menu">☰</button>
+</header>
+
+<div class="drawer" id="drawer" aria-hidden="true">
+  <div class="shade" id="shade"></div>
+  <aside class="panel">
+    <h2>FRANKY TOOLS</h2>
+    <a class="navlink" href="./index.html">Franky Rally Tool</a>
+    <a class="navlink active" href="./message-builder.html">Alliance Message Builder</a>
+  </aside>
+</div>
+
+<main class="wrap">
+  <section class="intro">
+    <h1>Alliance Message Builder</h1>
+    <p>Create and preview Dark War alliance messages, then copy the generated game code. Limit: 2,000 characters.</p>
+  </section>
+
+  <div class="toolbar" id="toolbar">
+    <button class="tool" type="button" data-cmd="bold"><b>B</b></button>
+    <button class="tool" type="button" data-cmd="italic"><i>I</i></button>
+    <button class="tool" type="button" data-cmd="underline"><u>U</u></button>
+    <select class="size-select" id="sizeSelect" aria-label="Text size">
+      <option value="">Size</option><option value="24">24</option><option value="30">30</option><option value="38">38</option><option value="45">45</option><option value="50">50</option>
+    </select>
+    <label class="color-wrap"><input class="color-input" id="colorInput" type="color" value="#ff4fd8" aria-label="Text color"></label>
+    <button class="preset" type="button" data-color="#FF4FD8">ABYX Pink</button>
+    <button class="preset" type="button" data-color="#5DDCFF">Cyan</button>
+    <button class="preset" type="button" data-color="#FFD166">Gold</button>
+    <button class="preset" type="button" data-color="#FF5E73">Red</button>
+    <button class="preset" type="button" data-color="#35D785">Green</button>
+    <button class="tool" type="button" id="clearFormat">Clear format</button>
+  </div>
+
+  <div class="grid">
+    <section class="card">
+      <div class="card-head"><strong>MESSAGE</strong><span class="counter" id="visibleCount">0 / 2000 visible</span></div>
+      <div class="editor" id="editor" contenteditable="true" spellcheck="true"></div>
+    </section>
+    <section class="card">
+      <div class="card-head"><strong>LIVE PREVIEW</strong><span class="counter" id="codeCount">0 / 2000 game code</span></div>
+      <div class="preview" id="preview"></div>
+    </section>
+  </div>
+
+  <section class="card" style="margin-top:12px">
+    <div class="card-head"><strong>GAME CODE</strong><span class="counter" id="remaining">2000 characters remaining</span></div>
+    <textarea class="code" id="codeOutput" readonly></textarea>
+    <div class="actions">
+      <button class="primary" type="button" id="copyBtn">COPY CODE</button>
+      <button class="secondary" type="button" id="resetBtn">CLEAR</button>
+    </div>
+    <div class="status" id="status" aria-live="polite"></div>
+  </section>
+
+  <div class="note">The game may count either visible text or raw rich-text code. This tool tracks both, so you can stay safely under the 2,000-character limit.</div>
+</main>
+
+<script>
+(function(){
+const editor=document.getElementById('editor'),preview=document.getElementById('preview'),code=document.getElementById('codeOutput');
+const visibleCount=document.getElementById('visibleCount'),codeCount=document.getElementById('codeCount'),remaining=document.getElementById('remaining'),status=document.getElementById('status');
+const drawer=document.getElementById('drawer');
+function setDrawer(open){drawer.classList.toggle('open',open);drawer.setAttribute('aria-hidden',open?'false':'true')}
+document.getElementById('menuBtn').addEventListener('click',()=>setDrawer(true));
+document.getElementById('shade').addEventListener('click',()=>setDrawer(false));
+
+function wrapSelection(tag,styleName,styleValue){
+  editor.focus();
+  const sel=window.getSelection();
+  if(!sel||!sel.rangeCount||!editor.contains(sel.anchorNode))return;
+  if(tag){document.execCommand(tag,false,null)}
+  if(styleName){
+    const range=sel.getRangeAt(0);
+    if(range.collapsed)return;
+    const span=document.createElement('span'); span.style[styleName]=styleValue;
+    try{range.surroundContents(span)}catch(e){span.appendChild(range.extractContents());range.insertNode(span)}
+    sel.removeAllRanges(); const r=document.createRange(); r.selectNodeContents(span); sel.addRange(r);
+  }
+  update();
+}
+document.querySelectorAll('[data-cmd]').forEach(b=>b.addEventListener('click',()=>wrapSelection(b.dataset.cmd)));
+document.getElementById('sizeSelect').addEventListener('change',e=>{if(e.target.value)wrapSelection(null,'fontSize',e.target.value+'px');e.target.value=''});
+document.getElementById('colorInput').addEventListener('change',e=>wrapSelection(null,'color',e.target.value));
+document.querySelectorAll('[data-color]').forEach(b=>b.addEventListener('click',()=>wrapSelection(null,'color',b.dataset.color)));
+document.getElementById('clearFormat').addEventListener('click',()=>{editor.focus();document.execCommand('removeFormat',false,null);update()});
+
+function cleanColor(v){if(!v)return'';if(v[0]==='#')return v.toUpperCase();const m=v.match(/\d+/g);if(m&&m.length>=3)return'#'+m.slice(0,3).map(x=>Number(x).toString(16).padStart(2,'0')).join('').toUpperCase();return v}
+function nodeToCode(node){
+  if(node.nodeType===3)return node.nodeValue;
+  if(node.nodeType!==1)return'';
+  if(node.tagName==='BR')return'\n';
+  let inner=[...node.childNodes].map(nodeToCode).join('');
+  const tag=node.tagName.toLowerCase();
+  if(tag==='div'||tag==='p'){if(inner&&!inner.endsWith('\n'))inner+='\n'}
+  if(tag==='b'||tag==='strong')inner='<b>'+inner+'</b>';
+  if(tag==='i'||tag==='em')inner='<i>'+inner+'</i>';
+  if(tag==='u')inner='<u>'+inner+'</u>';
+  const st=node.style||{};
+  if(st.fontWeight && (parseInt(st.fontWeight)>=600||st.fontWeight==='bold'))inner='<b>'+inner+'</b>';
+  if(st.fontStyle==='italic')inner='<i>'+inner+'</i>';
+  if(st.textDecoration && st.textDecoration.includes('underline'))inner='<u>'+inner+'</u>';
+  if(st.color)inner='<color='+cleanColor(st.color)+'>'+inner+'</color>';
+  if(st.fontSize){const n=Math.round(parseFloat(st.fontSize));if(n)inner='<size='+n+'>'+inner+'</size>'}
+  return inner;
+}
+function htmlToCode(){return [...editor.childNodes].map(nodeToCode).join('').replace(/\n{3,}/g,'\n\n').replace(/\n$/,'')}
+function renderGameCode(raw){
+  let safe=raw.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  safe=safe.replace(/&lt;b&gt;/gi,'<b>').replace(/&lt;\/b&gt;/gi,'</b>')
+           .replace(/&lt;i&gt;/gi,'<i>').replace(/&lt;\/i&gt;/gi,'</i>')
+           .replace(/&lt;u&gt;/gi,'<u>').replace(/&lt;\/u&gt;/gi,'</u>')
+           .replace(/&lt;color=([^&]+)&gt;/gi,'<span style="color:$1">').replace(/&lt;\/color&gt;/gi,'</span>')
+           .replace(/&lt;size=([0-9.]+)&gt;/gi,'<span style="font-size:$1px">').replace(/&lt;\/size&gt;/gi,'</span>');
+  return safe;
+}
+function paintCounter(el,n,label){el.textContent=n+' / 2000 '+label;el.classList.toggle('warn',n>=1600&&n<1850);el.classList.toggle('danger',n>=1850)}
+function update(){
+  const raw=htmlToCode();code.value=raw;preview.innerHTML=renderGameCode(raw);
+  const visible=(editor.innerText||'').replace(/\n$/,'').length, total=raw.length;
+  paintCounter(visibleCount,visible,'visible');paintCounter(codeCount,total,'game code');
+  const left=2000-total;remaining.textContent=(left>=0?left:Math.abs(left))+(left>=0?' characters remaining':' characters over limit');
+  remaining.classList.toggle('danger',left<0);remaining.classList.toggle('warn',left>=0&&left<=400);
+}
+editor.addEventListener('input',update);
+editor.addEventListener('paste',e=>{e.preventDefault();const text=(e.clipboardData||window.clipboardData).getData('text/plain');document.execCommand('insertText',false,text)});
+document.getElementById('resetBtn').addEventListener('click',()=>{editor.innerHTML='';status.textContent='';update();editor.focus()});
+document.getElementById('copyBtn').addEventListener('click',async()=>{
+  if(code.value.length>2000){status.textContent='Game code is over the 2,000-character limit.';return}
+  try{await navigator.clipboard.writeText(code.value);status.textContent='Code copied.'}
+  catch(e){code.focus();code.select();document.execCommand('copy');status.textContent='Code copied.'}
+});
+update();
+})();
+</script>
+</body>
+</html>
