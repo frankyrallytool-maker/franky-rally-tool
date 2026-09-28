@@ -273,13 +273,23 @@ window.FRANKY_SYNC_DATA = {
     },
     {
       "name": "Countessa",
-      "rallySize": null,
+      "rallySize": 65600.0,
       "rallySizePlus": false,
       "apcs": [
         {
           "apcNo": 1,
-          "powerM": 150.0,
-          "troopType": null
+          "powerM": 194.0,
+          "troopType": "shooter"
+        },
+        {
+          "apcNo": 2,
+          "powerM": 48.0,
+          "troopType": "rider"
+        },
+        {
+          "apcNo": 3,
+          "powerM": 54.0,
+          "troopType": "fighter"
         }
       ]
     },
