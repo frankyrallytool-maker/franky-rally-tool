@@ -274,6 +274,16 @@ select{
     appearance:auto;
   }
 }
+.global-drawer{position:fixed;inset:0;z-index:1000;pointer-events:none}
+.global-drawer.open{pointer-events:auto}
+.global-drawer-shade{position:absolute;inset:0;background:rgba(0,0,0,.58);opacity:0;transition:opacity .2s}
+.global-drawer.open .global-drawer-shade{opacity:1}
+.global-drawer-panel{position:absolute;top:0;right:0;width:min(86vw,340px);height:100%;padding:18px;background:#08111d;border-left:1px solid #203650;transform:translateX(100%);transition:transform .22s;box-shadow:-18px 0 40px rgba(0,0,0,.35)}
+.global-drawer.open .global-drawer-panel{transform:translateX(0)}
+.global-drawer-title{font-size:14px;font-weight:950;color:#cfeaff;margin:8px 0 14px}
+.global-nav-link{display:block;text-decoration:none;color:#dce9f7;background:#0d1826;border:1px solid #203650;border-radius:10px;padding:13px 14px;margin-bottom:9px;font-weight:850}
+.global-nav-link.active{border-color:#1d83d3;background:linear-gradient(180deg,rgba(20,149,255,.22),rgba(20,149,255,.08));color:#fff}
+.global-nav-link:focus-visible,.menu:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 </style>
 
 <meta name="theme-color" content="#07111d">
@@ -307,9 +317,18 @@ select{
         <div class="lang">
           <button id="enBtn" class="active">EN</button><span>|</span><button id="frBtn">FR</button><span>|</span><button id="itBtn">IT</button><span>|</span><button id="deBtn">DE</button>
         </div>
-        <button class="menu" aria-label="Menu">☰</button>
+        <button class="menu" id="globalMenuBtn" aria-label="Open menu">☰</button>
       </div>
     </header>
+
+    <div class="global-drawer" id="globalDrawer" aria-hidden="true">
+      <div class="global-drawer-shade" id="globalDrawerShade"></div>
+      <aside class="global-drawer-panel" aria-label="Franky tools navigation">
+        <div class="global-drawer-title">FRANKY TOOLS</div>
+        <a class="global-nav-link active" href="./index.html">Franky Rally Tool</a>
+        <a class="global-nav-link" href="./message-builder.html">Alliance Message Builder</a>
+      </aside>
+    </div>
 
     <div class="desktop-grid">
       <aside class="desktop-side">
@@ -533,5 +552,20 @@ renderAll();
 <script src="./live-data.js?v=49"></script>
 <script src="./image-generator.js?v=14"></script>
 <script src="./floating-buttons.js?v=1"></script>
+<script>
+(function(){
+  var btn=document.getElementById('globalMenuBtn');
+  var drawer=document.getElementById('globalDrawer');
+  var shade=document.getElementById('globalDrawerShade');
+  if(!btn||!drawer||!shade)return;
+  function setMenu(open){
+    drawer.classList.toggle('open',open);
+    drawer.setAttribute('aria-hidden',open?'false':'true');
+  }
+  btn.addEventListener('click',function(){setMenu(!drawer.classList.contains('open'));});
+  shade.addEventListener('click',function(){setMenu(false);});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')setMenu(false);});
+})();
+</script>
 </body>
 </html>
