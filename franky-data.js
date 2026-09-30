@@ -399,7 +399,7 @@ window.FRANKY_SYNC_DATA = {
       "apcs": [
         {
           "apcNo": 1,
-          "powerM": 571.0,
+          "powerM": 577.0,
           "troopType": "rider"
         },
         {
