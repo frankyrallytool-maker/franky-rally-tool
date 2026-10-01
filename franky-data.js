@@ -290,12 +290,12 @@ window.FRANKY_SYNC_DATA = {
     },
     {
       "name": "Dark soul",
-      "rallySize": 70400.0,
+      "rallySize": 75200.0,
       "rallySizePlus": false,
       "apcs": [
         {
           "apcNo": 1,
-          "powerM": 1240.0,
+          "powerM": 1260.0,
           "troopType": null
         },
         {
