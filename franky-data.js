@@ -175,22 +175,22 @@ window.FRANKY_SYNC_DATA = {
     },
     {
       "name": "Chrisxclusive",
-      "rallySize": 66000.0,
+      "rallySize": 70400.0,
       "rallySizePlus": false,
       "apcs": [
         {
           "apcNo": 1,
-          "powerM": 641.8,
+          "powerM": 646.8,
           "troopType": "fighter"
         },
         {
           "apcNo": 2,
-          "powerM": 212.2,
+          "powerM": 213.0,
           "troopType": "shooter"
         },
         {
           "apcNo": 3,
-          "powerM": 151.8,
+          "powerM": 152.5,
           "troopType": "rider"
         }
       ]
