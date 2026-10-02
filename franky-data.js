@@ -1069,7 +1069,7 @@ window.FRANKY_SYNC_DATA = {
       "apcs": [
         {
           "apcNo": 1,
-          "powerM": 673.0,
+          "powerM": 736.0,
           "troopType": "fighter"
         },
         {
@@ -1084,7 +1084,7 @@ window.FRANKY_SYNC_DATA = {
         },
         {
           "apcNo": 4,
-          "powerM": 115.0,
+          "powerM": 131.0,
           "troopType": "none"
         }
       ]
