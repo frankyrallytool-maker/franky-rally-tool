@@ -152,7 +152,7 @@ window.FRANKY_SYNC_DATA = {
       "apcs": []
     },
     {
-      "name": "Gentilmen",
+      "name": "Centilmen",
       "rallySize": null,
       "rallySizePlus": false,
       "apcs": [
@@ -1208,27 +1208,27 @@ window.FRANKY_SYNC_DATA = {
     },
     {
       "name": "NubïanQuéèn",
-      "rallySize": 68000.0,
+      "rallySize": 69600.0,
       "rallySizePlus": false,
       "apcs": [
         {
           "apcNo": 1,
-          "powerM": 390.0,
+          "powerM": 424.0,
           "troopType": "fighter"
         },
         {
           "apcNo": 2,
-          "powerM": 270.0,
+          "powerM": 313.0,
           "troopType": "shooter"
         },
         {
           "apcNo": 3,
-          "powerM": 124.0,
+          "powerM": 136.0,
           "troopType": "rider"
         },
         {
           "apcNo": 4,
-          "powerM": 113.0,
+          "powerM": 119.0,
           "troopType": "fighter"
         }
       ]
