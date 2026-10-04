@@ -114,27 +114,27 @@ window.FRANKY_SYNC_DATA = {
     },
     {
       "name": "Baby ツ",
-      "rallySize": 65200.0,
+      "rallySize": 67600.0,
       "rallySizePlus": false,
       "apcs": [
         {
           "apcNo": 1,
-          "powerM": 813.0,
+          "powerM": 850.0,
           "troopType": null
         },
         {
           "apcNo": 2,
-          "powerM": 204.7,
+          "powerM": 215.0,
           "troopType": null
         },
         {
           "apcNo": 3,
-          "powerM": 109.6,
+          "powerM": 112.0,
           "troopType": null
         },
         {
           "apcNo": 4,
-          "powerM": 102.4,
+          "powerM": 105.0,
           "troopType": null
         }
       ]
@@ -1378,17 +1378,17 @@ window.FRANKY_SYNC_DATA = {
         },
         {
           "apcNo": 2,
-          "powerM": 664.0,
+          "powerM": 677.0,
           "troopType": "shooter"
         },
         {
           "apcNo": 3,
-          "powerM": 262.0,
+          "powerM": 266.0,
           "troopType": "none"
         },
         {
           "apcNo": 4,
-          "powerM": 202.0,
+          "powerM": 209.0,
           "troopType": "none"
         }
       ]
