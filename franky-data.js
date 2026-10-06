@@ -124,7 +124,7 @@ window.FRANKY_SYNC_DATA = {
         },
         {
           "apcNo": 2,
-          "powerM": 215.0,
+          "powerM": 243.0,
           "troopType": null
         },
         {
