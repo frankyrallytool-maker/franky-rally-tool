@@ -1075,16 +1075,16 @@ window.FRANKY_SYNC_DATA = {
         {
           "apcNo": 2,
           "powerM": 318.0,
-          "troopType": "rider"
+          "troopType": "none"
         },
         {
           "apcNo": 3,
-          "powerM": 243.0,
-          "troopType": "shooter"
+          "powerM": 245.0,
+          "troopType": "none"
         },
         {
           "apcNo": 4,
-          "powerM": 131.0,
+          "powerM": 134.0,
           "troopType": "none"
         }
       ]
