@@ -1064,8 +1064,8 @@ window.FRANKY_SYNC_DATA = {
     },
     {
       "name": "MelCocoloco",
-      "rallySize": 68000.0,
-      "rallySizePlus": true,
+      "rallySize": 70000.0,
+      "rallySizePlus": false,
       "apcs": [
         {
           "apcNo": 1,
