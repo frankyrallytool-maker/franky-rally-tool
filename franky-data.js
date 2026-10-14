@@ -1074,17 +1074,17 @@ window.FRANKY_SYNC_DATA = {
         },
         {
           "apcNo": 2,
-          "powerM": 326.0,
+          "powerM": 338.0,
           "troopType": "none"
         },
         {
           "apcNo": 3,
-          "powerM": 252.0,
+          "powerM": 248.0,
           "troopType": "none"
         },
         {
           "apcNo": 4,
-          "powerM": 134.0,
+          "powerM": 137.0,
           "troopType": "none"
         }
       ]
