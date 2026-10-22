@@ -811,22 +811,22 @@ window.FRANKY_SYNC_DATA = {
       "apcs": [
         {
           "apcNo": 1,
-          "powerM": 990.0,
+          "powerM": 992.0,
           "troopType": "fighter"
         },
         {
           "apcNo": 2,
-          "powerM": 364.0,
+          "powerM": 372.0,
           "troopType": "shooter"
         },
         {
           "apcNo": 3,
-          "powerM": 216.0,
+          "powerM": 217.0,
           "troopType": "rider"
         },
         {
           "apcNo": 4,
-          "powerM": 184.0,
+          "powerM": 185.0,
           "troopType": "fighter"
         }
       ]
@@ -1009,7 +1009,7 @@ window.FRANKY_SYNC_DATA = {
     },
     {
       "name": "Mad Max",
-      "rallySize": 68800.0,
+      "rallySize": 69200.0,
       "rallySizePlus": false,
       "apcs": [
         {
