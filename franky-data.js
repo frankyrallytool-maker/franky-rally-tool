@@ -1009,7 +1009,7 @@ window.FRANKY_SYNC_DATA = {
     },
     {
       "name": "Mad Max",
-      "rallySize": 70800.0,
+      "rallySize": 71600.0,
       "rallySizePlus": false,
       "apcs": [
         {
