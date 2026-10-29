@@ -111,6 +111,11 @@
     "3": "none",
     "4": "none"
   },
+  "Stelar Nomad": {
+    "1": "fighter",
+    "2": "rider",
+    "3": "shooter"
+  },
   "SugarFree": {
     "1": "fighter",
     "2": "shooter"

@@ -409,12 +409,12 @@ window.FRANKY_SYNC_DATA = {
         },
         {
           "apcNo": 3,
-          "powerM": 242.0,
+          "powerM": 245.0,
           "troopType": "fighter"
         },
         {
           "apcNo": 4,
-          "powerM": 145.0,
+          "powerM": 170.0,
           "troopType": "fighter"
         }
       ]
@@ -493,12 +493,12 @@ window.FRANKY_SYNC_DATA = {
       "apcs": [
         {
           "apcNo": 1,
-          "powerM": 846.3,
+          "powerM": 958.8,
           "troopType": "fighter"
         },
         {
           "apcNo": 2,
-          "powerM": 284.7,
+          "powerM": 323.8,
           "troopType": "shooter"
         },
         {
@@ -1014,17 +1014,17 @@ window.FRANKY_SYNC_DATA = {
       "apcs": [
         {
           "apcNo": 1,
-          "powerM": 407.0,
+          "powerM": 410.0,
           "troopType": "fighter"
         },
         {
           "apcNo": 2,
-          "powerM": 181.0,
+          "powerM": 176.0,
           "troopType": "rider"
         },
         {
           "apcNo": 3,
-          "powerM": 126.0,
+          "powerM": 142.0,
           "troopType": "shooter"
         }
       ]
@@ -1591,21 +1591,26 @@ window.FRANKY_SYNC_DATA = {
     },
     {
       "name": "Timsah ya",
-      "rallySize": null,
+      "rallySize": 71600.0,
       "rallySizePlus": false,
       "apcs": [
         {
           "apcNo": 1,
-          "powerM": 581.0,
+          "powerM": 710.0,
           "troopType": null
         },
         {
           "apcNo": 2,
-          "powerM": 220.0,
+          "powerM": 280.0,
           "troopType": null
         },
         {
           "apcNo": 3,
+          "powerM": 135.0,
+          "troopType": null
+        },
+        {
+          "apcNo": 4,
           "powerM": 120.0,
           "troopType": null
         }
@@ -1781,6 +1786,28 @@ window.FRANKY_SYNC_DATA = {
           "apcNo": 3,
           "powerM": 150.0,
           "troopType": null
+        }
+      ]
+    },
+    {
+      "name": "Stelar Nomad",
+      "rallySize": 65600.0,
+      "rallySizePlus": false,
+      "apcs": [
+        {
+          "apcNo": 1,
+          "powerM": 250.0,
+          "troopType": "fighter"
+        },
+        {
+          "apcNo": 2,
+          "powerM": 90.0,
+          "troopType": "rider"
+        },
+        {
+          "apcNo": 3,
+          "powerM": 75.0,
+          "troopType": "shooter"
         }
       ]
     }
