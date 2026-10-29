@@ -4,6 +4,11 @@
     "2": "shooter",
     "3": "rider"
   },
+  "Cool cook": {
+    "1": "fighter",
+    "2": "shooter",
+    "3": "rider"
+  },
   "Countessa": {
     "1": "shooter",
     "2": "rider",
@@ -59,7 +64,10 @@
     "4": "fighter"
   },
   "Land of Human": {
-    "1": "shooter"
+    "1": "shooter",
+    "2": "fighter",
+    "3": "rider",
+    "4": "none"
   },
   "Lilith": {
     "1": "fighter",

@@ -197,23 +197,23 @@ window.FRANKY_SYNC_DATA = {
     },
     {
       "name": "Cool cook",
-      "rallySize": 66000.0,
+      "rallySize": 66800.0,
       "rallySizePlus": false,
       "apcs": [
         {
           "apcNo": 1,
-          "powerM": 860.0,
-          "troopType": null
+          "powerM": 1020.0,
+          "troopType": "fighter"
         },
         {
           "apcNo": 2,
-          "powerM": 210.0,
-          "troopType": null
+          "powerM": 260.0,
+          "troopType": "shooter"
         },
         {
           "apcNo": 3,
-          "powerM": 210.0,
-          "troopType": null
+          "powerM": 250.0,
+          "troopType": "rider"
         }
       ]
     },
@@ -833,23 +833,28 @@ window.FRANKY_SYNC_DATA = {
     },
     {
       "name": "Land of Human",
-      "rallySize": 74400.0,
+      "rallySize": 77200.0,
       "rallySizePlus": false,
       "apcs": [
         {
           "apcNo": 1,
-          "powerM": 1230.0,
+          "powerM": 1750.0,
           "troopType": "shooter"
         },
         {
           "apcNo": 2,
-          "powerM": 531.7,
-          "troopType": null
+          "powerM": 810.9,
+          "troopType": "fighter"
         },
         {
           "apcNo": 3,
-          "powerM": 415.6,
-          "troopType": null
+          "powerM": 511.4,
+          "troopType": "rider"
+        },
+        {
+          "apcNo": 4,
+          "powerM": 273.2,
+          "troopType": "none"
         }
       ]
     },
@@ -1264,27 +1269,27 @@ window.FRANKY_SYNC_DATA = {
     },
     {
       "name": "Pedi-Überlebende",
-      "rallySize": 66000.0,
+      "rallySize": 68000.0,
       "rallySizePlus": false,
       "apcs": [
         {
           "apcNo": 1,
-          "powerM": 422.0,
+          "powerM": 453.0,
           "troopType": "fighter"
         },
         {
           "apcNo": 2,
-          "powerM": 265.0,
+          "powerM": 254.0,
           "troopType": "shooter"
         },
         {
           "apcNo": 3,
-          "powerM": 254.0,
+          "powerM": 270.0,
           "troopType": "rider"
         },
         {
           "apcNo": 4,
-          "powerM": 114.0,
+          "powerM": 142.0,
           "troopType": "none"
         }
       ]
