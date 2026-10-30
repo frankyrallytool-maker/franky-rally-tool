@@ -936,28 +936,28 @@ window.FRANKY_SYNC_DATA = {
     },
     {
       "name": "locci",
-      "rallySize": 76000.0,
+      "rallySize": 77200.0,
       "rallySizePlus": false,
       "apcs": [
         {
           "apcNo": 1,
-          "powerM": 1400.0,
-          "troopType": null
+          "powerM": 1710.0,
+          "troopType": "fighter"
         },
         {
           "apcNo": 2,
-          "powerM": 480.0,
-          "troopType": null
+          "powerM": 765.1,
+          "troopType": "shooter"
         },
         {
           "apcNo": 3,
-          "powerM": 296.0,
-          "troopType": null
+          "powerM": 392.8,
+          "troopType": "rider"
         },
         {
           "apcNo": 4,
-          "powerM": 260.8,
-          "troopType": null
+          "powerM": 316.0,
+          "troopType": "fighter"
         }
       ]
     },
