@@ -1201,12 +1201,17 @@ window.FRANKY_SYNC_DATA = {
       "apcs": [
         {
           "apcNo": 1,
-          "powerM": 807.0,
+          "powerM": 950.0,
           "troopType": null
         },
         {
           "apcNo": 2,
-          "powerM": 266.0,
+          "powerM": 315.0,
+          "troopType": null
+        },
+        {
+          "apcNo": 3,
+          "powerM": 213.0,
           "troopType": null
         }
       ]
