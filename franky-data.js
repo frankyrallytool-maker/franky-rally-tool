@@ -295,18 +295,18 @@ window.FRANKY_SYNC_DATA = {
       "apcs": [
         {
           "apcNo": 1,
-          "powerM": 1260.0,
+          "powerM": 15434.0,
           "troopType": "shooter"
         },
         {
           "apcNo": 2,
-          "powerM": 460.0,
-          "troopType": null
+          "powerM": 705.0,
+          "troopType": "fighter"
         },
         {
           "apcNo": 3,
-          "powerM": 240.0,
-          "troopType": null
+          "powerM": 345.0,
+          "troopType": "rider"
         },
         {
           "apcNo": 4,
@@ -1383,22 +1383,22 @@ window.FRANKY_SYNC_DATA = {
       "apcs": [
         {
           "apcNo": 1,
-          "powerM": 1920.0,
+          "powerM": 2200.0,
           "troopType": "fighter"
         },
         {
           "apcNo": 2,
-          "powerM": 677.0,
+          "powerM": 922.0,
           "troopType": "shooter"
         },
         {
           "apcNo": 3,
-          "powerM": 266.0,
+          "powerM": 297.0,
           "troopType": "none"
         },
         {
           "apcNo": 4,
-          "powerM": 209.0,
+          "powerM": 283.0,
           "troopType": "none"
         }
       ]

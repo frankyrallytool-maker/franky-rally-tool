@@ -15,7 +15,9 @@
     "3": "fighter"
   },
   "Dark soul": {
-    "1": "shooter"
+    "1": "shooter",
+    "2": "fighter",
+    "3": "rider"
   },
   "Demi Dieu Alfa": {
     "1": "shooter",
