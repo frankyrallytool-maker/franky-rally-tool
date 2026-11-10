@@ -58,23 +58,23 @@ window.FRANKY_SYNC_DATA = {
     },
     {
       "name": "AKIRA アキラ",
-      "rallySize": 66400.0,
+      "rallySize": 68400.0,
       "rallySizePlus": false,
       "apcs": [
         {
           "apcNo": 1,
-          "powerM": 415.0,
-          "troopType": null
+          "powerM": 561.0,
+          "troopType": "fighter"
         },
         {
           "apcNo": 2,
-          "powerM": 160.0,
-          "troopType": null
+          "powerM": 204.0,
+          "troopType": "rider"
         },
         {
           "apcNo": 3,
-          "powerM": 125.0,
-          "troopType": null
+          "powerM": 165.0,
+          "troopType": "shooter"
         }
       ]
     },
