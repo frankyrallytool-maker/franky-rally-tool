@@ -806,12 +806,12 @@ window.FRANKY_SYNC_DATA = {
     },
     {
       "name": "Ksu",
-      "rallySize": 68400.0,
+      "rallySize": 71200.0,
       "rallySizePlus": false,
       "apcs": [
         {
           "apcNo": 1,
-          "powerM": 1050.0,
+          "powerM": 1090.0,
           "troopType": "fighter"
         },
         {
@@ -821,7 +821,7 @@ window.FRANKY_SYNC_DATA = {
         },
         {
           "apcNo": 3,
-          "powerM": 260.0,
+          "powerM": 266.0,
           "troopType": "rider"
         },
         {
@@ -919,17 +919,17 @@ window.FRANKY_SYNC_DATA = {
       "apcs": [
         {
           "apcNo": 1,
-          "powerM": 532.0,
+          "powerM": 652.0,
           "troopType": "fighter"
         },
         {
           "apcNo": 2,
-          "powerM": 221.0,
+          "powerM": 288.0,
           "troopType": "shooter"
         },
         {
           "apcNo": 3,
-          "powerM": 113.0,
+          "powerM": 174.5,
           "troopType": "rider"
         }
       ]
