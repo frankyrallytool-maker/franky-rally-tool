@@ -399,7 +399,7 @@ window.FRANKY_SYNC_DATA = {
       "apcs": [
         {
           "apcNo": 1,
-          "powerM": 822.0,
+          "powerM": 850.0,
           "troopType": "rider"
         },
         {
@@ -1801,22 +1801,22 @@ window.FRANKY_SYNC_DATA = {
     },
     {
       "name": "Stelar Nomad",
-      "rallySize": 65600.0,
+      "rallySize": 66400.0,
       "rallySizePlus": false,
       "apcs": [
         {
           "apcNo": 1,
-          "powerM": 272.0,
+          "powerM": 291.0,
           "troopType": "fighter"
         },
         {
           "apcNo": 2,
-          "powerM": 96.0,
+          "powerM": 102.0,
           "troopType": "rider"
         },
         {
           "apcNo": 3,
-          "powerM": 82.0,
+          "powerM": 87.0,
           "troopType": "shooter"
         }
       ]
