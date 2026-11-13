@@ -251,17 +251,17 @@ window.FRANKY_SYNC_DATA = {
       "apcs": [
         {
           "apcNo": 1,
-          "powerM": 194.0,
+          "powerM": 245.9,
           "troopType": "shooter"
         },
         {
           "apcNo": 2,
-          "powerM": 48.0,
+          "powerM": 58.4,
           "troopType": "rider"
         },
         {
           "apcNo": 3,
-          "powerM": 54.0,
+          "powerM": 58.6,
           "troopType": "fighter"
         }
       ]
@@ -1019,17 +1019,17 @@ window.FRANKY_SYNC_DATA = {
       "apcs": [
         {
           "apcNo": 1,
-          "powerM": 410.0,
+          "powerM": 430.0,
           "troopType": "fighter"
         },
         {
           "apcNo": 2,
-          "powerM": 176.0,
+          "powerM": 196.0,
           "troopType": "rider"
         },
         {
           "apcNo": 3,
-          "powerM": 142.0,
+          "powerM": 152.0,
           "troopType": "shooter"
         }
       ]
@@ -1218,27 +1218,27 @@ window.FRANKY_SYNC_DATA = {
     },
     {
       "name": "NubïanQuéèn",
-      "rallySize": 69600.0,
+      "rallySize": 70400.0,
       "rallySizePlus": false,
       "apcs": [
         {
           "apcNo": 1,
-          "powerM": 431.0,
+          "powerM": 608.0,
           "troopType": "fighter"
         },
         {
           "apcNo": 2,
-          "powerM": 313.0,
+          "powerM": 378.0,
           "troopType": "shooter"
         },
         {
           "apcNo": 3,
-          "powerM": 136.0,
+          "powerM": 178.0,
           "troopType": "rider"
         },
         {
           "apcNo": 4,
-          "powerM": 119.0,
+          "powerM": 109.0,
           "troopType": "fighter"
         }
       ]
