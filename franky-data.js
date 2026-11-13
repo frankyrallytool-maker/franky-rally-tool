@@ -180,17 +180,17 @@ window.FRANKY_SYNC_DATA = {
       "apcs": [
         {
           "apcNo": 1,
-          "powerM": 666.6,
+          "powerM": 848.49,
           "troopType": "fighter"
         },
         {
           "apcNo": 2,
-          "powerM": 236.4,
+          "powerM": 261.41,
           "troopType": "shooter"
         },
         {
           "apcNo": 3,
-          "powerM": 157.9,
+          "powerM": 180.36,
           "troopType": "rider"
         }
       ]
@@ -962,19 +962,24 @@ window.FRANKY_SYNC_DATA = {
       ]
     },
     {
-      "name": "• Lolii •",
-      "rallySize": null,
+      "name": "(• Lolii •) Pedi by Lolii",
+      "rallySize": 72400.0,
       "rallySizePlus": false,
       "apcs": [
         {
           "apcNo": 1,
-          "powerM": 750.0,
-          "troopType": null
+          "powerM": 818.0,
+          "troopType": "fighter"
         },
         {
           "apcNo": 2,
-          "powerM": 150.0,
-          "troopType": null
+          "powerM": 296.0,
+          "troopType": "rider"
+        },
+        {
+          "apcNo": 3,
+          "powerM": 210.0,
+          "troopType": "none"
         }
       ]
     },
