@@ -498,7 +498,7 @@ window.FRANKY_SYNC_DATA = {
       "apcs": [
         {
           "apcNo": 1,
-          "powerM": 958.8,
+          "powerM": 1.0,
           "troopType": "fighter"
         },
         {
@@ -941,17 +941,17 @@ window.FRANKY_SYNC_DATA = {
     },
     {
       "name": "locci",
-      "rallySize": 77200.0,
+      "rallySize": 79200.0,
       "rallySizePlus": false,
       "apcs": [
         {
           "apcNo": 1,
-          "powerM": 1710.0,
+          "powerM": 2050.0,
           "troopType": "fighter"
         },
         {
           "apcNo": 2,
-          "powerM": 765.1,
+          "powerM": 864.0,
           "troopType": "shooter"
         },
         {
