@@ -687,22 +687,22 @@ window.FRANKY_SYNC_DATA = {
     },
     {
       "name": "Jazzy12345",
-      "rallySize": null,
+      "rallySize": 68800.0,
       "rallySizePlus": false,
       "apcs": [
         {
           "apcNo": 1,
-          "powerM": 520.0,
+          "powerM": 577.0,
           "troopType": "shooter"
         },
         {
           "apcNo": 2,
-          "powerM": 379.0,
+          "powerM": 339.0,
           "troopType": "rider"
         },
         {
           "apcNo": 3,
-          "powerM": 132.0,
+          "powerM": 125.0,
           "troopType": "fighter"
         }
       ]
