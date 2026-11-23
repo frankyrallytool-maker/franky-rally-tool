@@ -9,6 +9,12 @@
     "2": "rider",
     "3": "shooter"
   },
+  "Baby ツ": {
+    "1": "fighter",
+    "2": "none",
+    "3": "none",
+    "4": "none"
+  },
   "Chrisxclusive": {
     "1": "fighter",
     "2": "shooter",
@@ -108,6 +114,11 @@
     "3": "none",
     "4": "none"
   },
+  "MiniAisha": {
+    "1": "fighter",
+    "2": "shooter",
+    "3": "fighter"
+  },
   "Moranax": {
     "1": "fighter",
     "2": "rider",
@@ -148,6 +159,16 @@
   },
   "TimTom87": {
     "1": "fighter"
+  },
+  "Tommy15": {
+    "1": "rider",
+    "2": "fighter",
+    "3": "shooter"
+  },
+  "dewwww": {
+    "1": "fighter",
+    "2": "shooter",
+    "3": "rider"
   },
   "liliabreakş": {
     "1": "shooter",
