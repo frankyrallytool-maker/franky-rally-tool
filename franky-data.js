@@ -15,17 +15,17 @@ window.FRANKY_SYNC_DATA = {
         {
           "apcNo": 1,
           "powerM": 245.0,
-          "troopType": null
+          "troopType": "none"
         },
         {
           "apcNo": 2,
           "powerM": 73.0,
-          "troopType": null
+          "troopType": "none"
         },
         {
           "apcNo": 3,
           "powerM": 67.0,
-          "troopType": null
+          "troopType": "none"
         }
       ]
     },
@@ -37,21 +37,21 @@ window.FRANKY_SYNC_DATA = {
         {
           "apcNo": 1,
           "powerM": 999.2,
-          "troopType": null
+          "troopType": "none"
         },
         {
           "apcNo": 2,
-          "powerM": 303.0,
-          "troopType": null
+          "powerM": 533.0,
+          "troopType": "none"
         },
         {
           "apcNo": 3,
-          "powerM": 205.0,
-          "troopType": null
+          "powerM": 289.6,
+          "troopType": "none"
         },
         {
           "apcNo": 4,
-          "powerM": 167.5,
+          "powerM": 249.0,
           "troopType": null
         }
       ]
@@ -86,7 +86,7 @@ window.FRANKY_SYNC_DATA = {
         {
           "apcNo": 1,
           "powerM": 450.0,
-          "troopType": null
+          "troopType": "none"
         }
       ]
     },
@@ -1029,17 +1029,17 @@ window.FRANKY_SYNC_DATA = {
       "apcs": [
         {
           "apcNo": 1,
-          "powerM": 430.0,
+          "powerM": 460.0,
           "troopType": "fighter"
         },
         {
           "apcNo": 2,
-          "powerM": 196.0,
+          "powerM": 207.0,
           "troopType": "rider"
         },
         {
           "apcNo": 3,
-          "powerM": 152.0,
+          "powerM": 157.0,
           "troopType": "shooter"
         }
       ]
